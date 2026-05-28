@@ -2632,14 +2632,16 @@ const visualStart =
 
             let notesToHighlight;
             if (isRepeatPass) {
-                const firstPassPlayTime = notePlayTime - REPEAT_LEN * secondsPerMeasure;
+                // Use raw MIDI time (not playTime) to locate first-pass equivalents.
+                // playTime is interleaved-index-based (repeat-pass m29 idx=2, first-pass
+                // m29 idx=1 — offset is 1×secondsPerMeasure, NOT REPEAT_LEN×secondsPerMeasure).
+                // Raw MIDI time offsets are always exactly REPEAT_LEN×secondsPerMeasure.
+                const firstPassRawTime = note.time - REPEAT_LEN * secondsPerMeasure;
                 notesToHighlight = sectionNotes.filter(n =>
-                    Math.abs((n.playTime ?? n.time) - firstPassPlayTime) < 0.01
+                    Math.abs(n.time - firstPassRawTime) < 0.01
                 );
                 if (!notesToHighlight.length) {
-                    // First-pass measures are not in the current range (e.g. range 36→37).
-                    // Fall back: find the first-pass equivalents by raw MIDI time in allMidiNotes.
-                    const firstPassRawTime = note.time - REPEAT_LEN * secondsPerMeasure;
+                    // First-pass measures not in range — fall back to allMidiNotes
                     notesToHighlight = allMidiNotes.filter(n =>
                         Math.abs(n.time - firstPassRawTime) < 0.01
                     );
@@ -5112,14 +5114,17 @@ function onTrainingNoteSpawned(noteObj) {
 
     let simultaneousNotes;
     if (isRepeatPass) {
-        const firstPassPlayTime = notePlayTime - REPEAT_LEN * secondsPerMeasure;
+        // Use raw MIDI time (not playTime) to locate first-pass equivalents.
+        // playTime is interleaved-index-based (repeat-pass m29 idx=2, first-pass
+        // m29 idx=1 — offset is 1×secondsPerMeasure, NOT REPEAT_LEN×secondsPerMeasure).
+        // Raw MIDI time offsets are always exactly REPEAT_LEN×secondsPerMeasure.
+        const firstPassRawTime = noteObj.time - REPEAT_LEN * secondsPerMeasure;
         simultaneousNotes = practiceNotes.filter(n =>
-            Math.abs((n.playTime ?? n.time) - firstPassPlayTime) < 0.01
+            Math.abs(n.time - firstPassRawTime) < 0.01
         );
         if (!simultaneousNotes.length) {
             // First-pass measures are not in the current range (e.g. range 36→37).
             // Fall back: find the first-pass equivalents by raw MIDI time in allMidiNotes.
-            const firstPassRawTime = noteObj.time - REPEAT_LEN * secondsPerMeasure;
             simultaneousNotes = allMidiNotes.filter(n =>
                 Math.abs(n.time - firstPassRawTime) < 0.01
             );
