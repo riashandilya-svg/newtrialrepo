@@ -62,6 +62,57 @@ window.SONG_CONFIG = {
     return null;
   },
 
+  // Block-repeat aware sequencer:
+  //   - If the range overlaps the repeat block (29-36), emit the entire first
+  //     pass of the overlap FIRST, then the entire second pass — never
+  //     interleaved per-measure (which would cause "same measure twice in a row").
+  //   - Measures outside the repeat block use the normal per-measure logic.
+  buildPhysicalPracticeMeasureSequence(startLogical, endLogical, skipRepeats, { MAX_LOGICAL_MEASURE, SONG_CONFIG }) {
+    if (startLogical > endLogical) return null;
+    const RSTART = 29, REND = 36;
+    const seq = [], logicalSeq = [];
+
+    const preEnd    = Math.min(endLogical,   RSTART - 1);
+    const repStart  = Math.max(startLogical, RSTART);
+    const repEnd    = Math.min(endLogical,   REND);
+    const postStart = Math.max(startLogical, REND + 1);
+
+    const pushFirst = (l) => {
+      if (l > MAX_LOGICAL_MEASURE) return false;
+      const p1 = window.SONG_CONFIG.logicalToPhysicalFirst(l);
+      if (p1 > SONG_CONFIG.measures) return false;
+      seq.push(p1); logicalSeq.push(l);
+      return true;
+    };
+
+    // Pre-repeat measures
+    for (let l = startLogical; l <= preEnd; l++) {
+      if (!pushFirst(l)) return null;
+    }
+
+    // Repeat block: all first-pass first, then all second-pass
+    if (repStart <= repEnd) {
+      for (let l = repStart; l <= repEnd; l++) {
+        if (!pushFirst(l)) return null;
+      }
+      if (!skipRepeats) {
+        for (let l = repStart; l <= repEnd; l++) {
+          const p2 = window.SONG_CONFIG.logicalToPhysicalSecond(l);
+          if (p2 !== null && p2 <= SONG_CONFIG.measures) {
+            seq.push(p2); logicalSeq.push(l);
+          }
+        }
+      }
+    }
+
+    // Post-repeat measures
+    for (let l = postStart; l <= endLogical; l++) {
+      if (!pushFirst(l)) return null;
+    }
+
+    return { seq, logicalSeq };
+  },
+
   // Sections use LOGICAL measure numbers (max 73, not 81).
   sections: [
     { label: "Intro music",                      start: 1,  end: 11 },
