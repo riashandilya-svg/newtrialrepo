@@ -4857,7 +4857,12 @@ function _buildSvgMidiMap() {
             // chord member landing here needs the same redirect.
             const alreadyFired = overflowFired.has(overflowKey);
             const isPermanentlyEmpty = cap === 0;
-            const shouldOverflow = !gracePreCorrected && !isRepeatPassNote &&
+            // For permanently-empty buckets (cap===0) the redirect must fire on BOTH
+            // passes — there are no SVG noteheads here at all, so every note landing
+            // in this bucket is always wrong, regardless of first vs. repeat pass.
+            // isRepeatPassNote must NOT block the redirect when isPermanentlyEmpty.
+            const shouldOverflow = !gracePreCorrected &&
+                (!isRepeatPassNote || isPermanentlyEmpty) &&
                 (!alreadyFired || isPermanentlyEmpty) &&
                 (isPermanentlyEmpty ? used < 2 : (used >= cap && used < 2 * cap));
             if (shouldOverflow) {
