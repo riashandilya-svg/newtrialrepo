@@ -4713,8 +4713,14 @@ function _buildSvgMidiMap() {
             // Exception: treble measure 36's tied whole note is intentionally kept in
             // _svgBucketsPage2[36][treble] for highlighting, so its MIDI note must also
             // get a rank entry (rank 0) rather than being skipped.
-            // No repeat boundary — all tied-continuation notes are excluded normally
-            if (_tiedNoteKeys.has(mk) || _tiedNoteKeys.has(mkShifted)) continue;
+            const isTiedM36Treble = (_tiedNoteKeys.has(mk) || _tiedNoteKeys.has(mkShifted))
+                && clef === 'treble'
+                && (() => {
+                    const pm = getMeasureFromTime(note.time);
+                    const sm = pm !== null ? (PHYSICAL_TO_LOGICAL[pm] ?? pm) : null;
+                    return sm === 36;
+                })();
+            if (!isTiedM36Treble && (_tiedNoteKeys.has(mk) || _tiedNoteKeys.has(mkShifted))) continue;
 
             const physMeasure = getMeasureFromTime(note.time);
             if (physMeasure === null) continue;
@@ -4735,6 +4741,21 @@ function _buildSvgMidiMap() {
             // _svgIndicesForMidiNote can route them to the correct page-2 bucket.
             if (sheetMeasure === 36 && (clef === 'bass' || clef === 'treble')) {
                 hardcodedGraceCorrected = true;
+            }
+
+            // Hardcoded grace corrections for measures 30, 32, 34 (empty treble buckets)
+            // and the repeat-pass grace note for m29 that lands in logical 36.
+            if (note.duration < 0.1) {
+                if (sheetMeasure === 30 || sheetMeasure === 32 || sheetMeasure === 34) {
+                    sheetMeasure += 1;
+                    hardcodedGraceCorrected = true;
+                } else if (sheetMeasure === 36 && clef === 'treble') {
+                    // Repeat pass: treble grace note for logical 29 lands in logical 36.
+                    // Always redirect to logical 29.
+                    // NOTE: bass clef intentionally excluded — bass m36 has genuine short notes.
+                    sheetMeasure = 29;
+                    hardcodedGraceCorrected = true;
+                }
             }
 
             // Measure-boundary overflow correction:
@@ -4794,7 +4815,7 @@ function _buildSvgMidiMap() {
             // doesn't have the key yet) and gets mis-routed to the next sheet measure.
             // Physical measure 14 is the 1st ending (NOT part of the repeat pass).
             // The repeat pass occupies physical REPEAT_END+2 .. REPEAT_END+REPEAT_LEN+1 = 15..21.
-            const isRepeatPassNote = physMeasure > REPEAT_END + 1 && physMeasure <= REPEAT_END + REPEAT_LEN + 1;
+            const isRepeatPassNote = physMeasure > REPEAT_END && physMeasure <= REPEAT_END + REPEAT_LEN;
             const overflowKey = `${sheetMeasure}|${clef}`;
             // For permanently-empty buckets (cap===0), ALL notes must be redirected —
             // not just the first one. overflowFired only blocks re-triggering for
