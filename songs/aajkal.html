@@ -29,16 +29,47 @@ window.SONG_CONFIG = {
   midiFile:  "../midi/aajkal.mid",
   svgBase:   "../svg/aajkal",
   timeSignature: [2, 2],
-  measures:      81,
+  measures:      81,   // physical MIDI measure count (includes both passes of the repeat)
   repeats:       [],
   pickupBeats:   0,
+
+  // ── Repeat: physical measures 29-36 play twice in the MIDI.
+  //    The SVG/sheet shows them once (logical 29-36).
+  //    Physical 37-44  = repeat pass  → logical 29-36
+  //    Physical 45-81  = post-repeat  → logical 37-73
+  repeatStart: 29,
+  repeatEnd:   36,
+  repeatLen:   8,
+
+  buildPhysicalToLogical(map) {
+    for (let p = 1;  p <= 28; p++) map[p] = p;           // pre-repeat: direct
+    for (let p = 29; p <= 36; p++) map[p] = p;           // first pass of repeat
+    for (let p = 37; p <= 44; p++) map[p] = p - 8;       // second pass → logical 29-36
+    for (let p = 45; p <= 81; p++) map[p] = p - 8;       // post-repeat: shift back 8
+    return map;
+  },
+
+  logicalToPhysicalFirst(logical) {
+    // Logical 1-36  live at the same physical measure.
+    // Logical 37-73 live at physical + 8 (post-repeat block).
+    if (logical >= 37 && logical <= 73) return logical + 8;
+    return logical;
+  },
+
+  logicalToPhysicalSecond(logical) {
+    // Only the repeated section (logical 29-36) has a second physical pass.
+    if (logical >= 29 && logical <= 36) return logical + 8;
+    return null;
+  },
+
+  // Sections use LOGICAL measure numbers (max 73, not 81).
   sections: [
     { label: "Intro music",                      start: 1,  end: 11 },
     { label: "Aaj kal — toh kya?",               start: 12, end: 28 },
-    { label: "Middle music",                     start: 29, end: 36 },
-    { label: "Hamne toh — naam kar lia",         start: 37, end: 57 },
-    { label: "Aaj kal toh kya — reprise",        start: 58, end: 73 },
-    { label: "Ending",                           start: 74, end: 81 },
+    { label: "Middle music (repeat)",            start: 29, end: 36 },
+    { label: "Hamne toh — naam kar lia",         start: 37, end: 49 },
+    { label: "Aaj kal toh kya — reprise",        start: 50, end: 65 },
+    { label: "Ending",                           start: 66, end: 73 },
   ],
   brandUrl:     "https://riashandilya-svg.github.io/classicbollywoodmelodies/index.html",
   brandName:    "Ria Om Shandilya",
