@@ -1,4 +1,3 @@
-
 // ── ENGINE BOOT: wire SONG_CONFIG values into the DOM ──────────────────────
 (function bootDom() {
   const cfg = window.SONG_CONFIG;
@@ -5204,4 +5203,3 @@ if (freeMode && note === freeModeActiveNote) {
         evaluateHoldOnRelease(note);
     }
 }
-
