@@ -148,7 +148,11 @@ async function loadSongMidi() {
         secondsPerBeat = 60 / bpm;
     }
     secondsPerMeasure = secondsPerBeat * SONG_CONFIG.timeSignature[0];
-    MEASURE_TIME_MAP = buildMeasureTimeMap(SONG_CONFIG, secondsPerBeat);
+    if (typeof SONG_CONFIG.buildMeasureTimeMap === 'function') {
+        MEASURE_TIME_MAP = SONG_CONFIG.buildMeasureTimeMap(SONG_CONFIG, currentMidi.header.tempos, secondsPerBeat);
+    } else {
+        MEASURE_TIME_MAP = buildMeasureTimeMap(SONG_CONFIG, secondsPerBeat);
+    }
 
     setControlsEnabled(true);
 
@@ -4825,13 +4829,15 @@ function _buildSvgMidiMap() {
             // playable noteheads live on page 2 (_svgBucketsPage2[36][bass|treble]).
             // Suppress the overflow→37 so all m36 notes stay at sheetMeasure=36 and
             // _svgIndicesForMidiNote can route them to the correct page-2 bucket.
-            if (sheetMeasure === 36 && (clef === 'bass' || clef === 'treble')) {
+            // Only applies to songs with repeats (where this page-layout scenario occurs).
+            if (REPEAT_LEN > 0 && sheetMeasure === 36 && (clef === 'bass' || clef === 'treble')) {
                 hardcodedGraceCorrected = true;
             }
 
             // Hardcoded grace corrections for measures 30, 32, 34 (empty treble buckets)
             // and the repeat-pass grace note for m29 that lands in logical 36.
-            if (note.duration < 0.1) {
+            // These are only applicable for songs that have a repeat section (REPEAT_LEN > 0).
+            if (REPEAT_LEN > 0 && note.duration < 0.1) {
                 if (sheetMeasure === 30 || sheetMeasure === 32 || sheetMeasure === 34) {
                     sheetMeasure += 1;
                     hardcodedGraceCorrected = true;
@@ -4910,6 +4916,12 @@ function _buildSvgMidiMap() {
             // chord member landing here needs the same redirect.
             const alreadyFired = overflowFired.has(overflowKey);
             const isPermanentlyEmpty = cap === 0;
+            // For permanently-empty buckets (cap===0): in songs WITH repeats the
+            // redirect fires on both passes (used < 2). In songs WITHOUT repeats
+            // (REPEAT_LEN === 0) an empty bucket simply means a rest-only measure
+            // in one clef — we must NOT redirect, or every subsequent rank shifts.
+            const emptyBucketShouldOverflow = isPermanentlyEmpty &&
+                (REPEAT_LEN > 0 ? used < 2 : false);
             // For permanently-empty buckets (cap===0) the redirect must fire on BOTH
             // passes — there are no SVG noteheads here at all, so every note landing
             // in this bucket is always wrong, regardless of first vs. repeat pass.
@@ -4917,7 +4929,7 @@ function _buildSvgMidiMap() {
             const shouldOverflow = !gracePreCorrected &&
                 (!isRepeatPassNote || isPermanentlyEmpty) &&
                 (!alreadyFired || isPermanentlyEmpty) &&
-                (isPermanentlyEmpty ? used < 2 : (used >= cap && used < 2 * cap));
+                (isPermanentlyEmpty ? emptyBucketShouldOverflow : (used >= cap && used < 2 * cap));
             if (shouldOverflow) {
                 const nextCap = bucketCapacity[`${sheetMeasure + 1}|${clef}`] ?? 0;
                 if (nextCap > 0) {
