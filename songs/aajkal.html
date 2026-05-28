@@ -51,30 +51,6 @@ window.SONG_CONFIG = {
   repeatEnd:   36,
   repeatLen:   8,
 
-  // Maps physical MIDI measures → logical sheet measures
-  buildPhysicalToLogical: function(map) {
-    const RS = 29, RL = 8;
-    for (let p = 1; p <= 81; p++) {
-      let logical;
-      if      (p <= 28)        logical = p;
-      else if (p <= 36)        logical = p;           // first pass
-      else if (p <= 36 + RL)   logical = RS + (p-37); // repeat pass → same sheet measure
-      else                     logical = p - RL;       // after repeat
-      map[p] = logical;
-    }
-    return map;
-  },
-
-  // Which physical measure to use for the FIRST occurrence of a logical measure
-  logicalToPhysicalFirst: function(l) {
-    return l <= 36 ? l : l + 8;
-  },
-
-  // Which physical measure to use for the SECOND occurrence (null if none)
-  logicalToPhysicalSecond: function(l) {
-    return (l >= 29 && l <= 36) ? l + 8 : null;
-  },
-
   svgPageSystems: [
     // PAGE 1
     [
@@ -527,6 +503,25 @@ window.SONG_CONFIG = {
 </div> <!-- closes app -->
 
 <script defer src="https://cdn.jsdelivr.net/npm/tone@14.7.77/build/Tone.js"></script>
+
+<!-- Override SVG highlight colors to match score-mode: use #E57373 for all notes
+     instead of engine.js defaults (treble: #9B2C6E purple, bass: #B45309 gold) -->
+<script>
+(function () {
+  // Colors engine.js uses for treble and bass highlights
+  const ENGINE_COLORS = new Set(['#9B2C6E', '#9b2c6e', '#B45309', '#b45309', '#16a34a', '#16A34A']);
+  const SCORE_MODE_COLOR = '#E57373';
+
+  const _origSetAttr = SVGElement.prototype.setAttribute;
+  SVGElement.prototype.setAttribute = function (name, value) {
+    if (name === 'fill' && ENGINE_COLORS.has(value)) {
+      return _origSetAttr.call(this, name, SCORE_MODE_COLOR);
+    }
+    return _origSetAttr.call(this, name, value);
+  };
+})();
+</script>
+
 <script type="module" src="../engine.js"></script>
 
 <!-- Supabase + Paywall (shared) -->
