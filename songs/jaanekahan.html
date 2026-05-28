@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jaane Kahan Mera Jigaar Gaya Ji</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../engine.css">
+
+<!-- ✏️ Optional: override accent color for this song -->
+<!--
+<style>
+  :root {
+    --accent-primary: #FFC107;
+    --yellow1: rgba(255, 193, 7, 0.22);
+    --yellow2: rgba(255, 235, 59, 0.16);
+  }
+</style>
+-->
+</head>
+<body>
+
+<!-- ================================================================
+  SONG CONFIG — edit this block for each new song
+  All other files (engine.js, engine.css, paywall.js) are shared.
+================================================================ -->
+<script>
+window.SONG_CONFIG = {
+  // ── Identity ───────────────────────────────────────────────────
+  id:        "jaanekahan",
+  title:     "Jaane Kahan Mera Jigaar Gaya Ji",
+  productId: "song:jaanekahan",
+
+  // ── Files ──────────────────────────────────────────────────────
+  midiFile: "../midi/jaanekahan.mid",
+  svgBase:  "../svg/jaanekahan",   // engine appends "-1.svg", "-2.svg", etc.
+
+  // ── Structure ──────────────────────────────────────────────────
+  timeSignature: [4, 4],
+  measures:      40,
+  repeats:       [],
+  pickupBeats:   0,
+
+  // ── Section shortcuts (shown in the "Jump to section" dropdown) ─
+  sections: [
+    { label: "Intro",                       start: 1,  end: 4  },
+    { label: "Jaane kahan — dil mera",      start: 5,  end: 12 },
+    { label: "Haye re haye — gaya ji",      start: 13, end: 20 },
+    { label: "Mukhda reprise",              start: 21, end: 28 },
+    { label: "Antara",                      start: 29, end: 37 },
+    { label: "Coda / ending",               start: 38, end: 40 },
+  ],
+
+  // ── Brand bar ─────────────────────────────────────────────────
+  brandUrl:  "https://riashandilya-svg.github.io/classicbollywoodmelodies/index.html",
+  brandName: "Ria Om Shandilya",
+
+  // ── YouTube guide button (set to null to hide) ─────────────────
+  youtubeUrl:   "https://www.youtube.com/watch?v=FaJh5yr51iw",
+  youtubeLabel: "Quick Guide to Measures & Sheet",
+
+  // ── Repeat map (this song has none — leave these out or set to 0) ──
+  // repeatStart: 0, repeatEnd: 0, repeatLen: 0, repeatPhysicalOffset: 0,
+};
+</script>
+
+<!-- Shared engine (CSS already linked in <head>) -->
+<script defer src="https://cdn.jsdelivr.net/npm/tone@14.7.77/build/Tone.js"></script>
+<script type="module" src="../engine.js"></script>
+
+<!-- Supabase + Paywall (shared) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../supabaseClient.js"></script>
+<script src="../paywall.js"></script>
+
+<!-- Login check + paywall trigger -->
+<script type="module">
+  if (!window.supabase) {
+    console.error('[FATAL] window.supabase not initialized.');
+  } else {
+    async function requireLogin() {
+      try {
+        const { data } = await window.supabase.auth.getSession();
+        if (!data.session) { window.location.replace("/login.html"); return false; }
+        return true;
+      } catch (e) { console.error("Auth check failed.", e); return false; }
+    }
+
+    const loggedIn = await requireLogin();
+    if (loggedIn) {
+      if (typeof window.showPaywall !== 'function') {
+        console.error('[FATAL] window.showPaywall not defined.');
+      } else {
+        const cfg = window.SONG_CONFIG;
+        window.showPaywall({
+          productId: cfg.productId,
+          title: "This song is locked",
+          body: "Please buy to unlock this lesson.",
+          onSuccess: () => { document.getElementById('app').style.display = 'block'; }
+        });
+      }
+    }
+    window.addEventListener("pageshow", requireLogin);
+  }
+</script>
+
+</body>
+</html>
