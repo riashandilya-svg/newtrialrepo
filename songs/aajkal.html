@@ -524,42 +524,79 @@ window.SONG_CONFIG = {
 })();
 </script>
 
-<!-- Diagnostic: log all Page 1 noteheads so we can verify bass_bot bounds -->
-<script type="module">
-  // Run after engine has loaded and rendered the SVG pages
-  window.addEventListener('load', () => {
-    setTimeout(() => {
-      const svgEl = document.querySelector('#scorePage1 svg');
-      if (!svgEl) { console.warn('[DIAG] Page 1 SVG not loaded yet'); return; }
-      const sys1 = window.SONG_CONFIG.svgPageSystems[0][0]; // first system: m1-7
-      const notes = [];
-      svgEl.querySelectorAll('path.Note').forEach(el => {
-        const t = el.getAttribute('transform') || '';
-        const mm = t.match(/matrix\(\s*([\d.eE+-]+)[,\s]+([\d.eE+-]+)[,\s]+([\d.eE+-]+)[,\s]+([\d.eE+-]+)[,\s]+([\d.eE+-]+)[,\s]+([\d.eE+-]+)\s*\)/);
-        if (!mm) return;
-        const tx = parseFloat(mm[5]), ty = parseFloat(mm[6]);
-        // Only log notes near system 1 y range (with generous tolerance)
-        if (ty >= sys1.treble_top - 100 && ty <= sys1.bass_bot + 200) {
-          const inTreble = ty >= sys1.treble_top - 80 && ty <= sys1.treble_bot + 50;
-          const inBass   = ty >= sys1.bass_top   - 50 && ty <= sys1.bass_bot + 50;
-          const bls = sys1.barline_xs;
-          let measure = '?';
-          for (let i = 0; i < bls.length - 1; i++) {
-            const lb = i===0 ? bls[i]-20 : bls[i];
-            const rb = i===bls.length-2 ? bls[i+1]+20 : bls[i+1];
-            if (tx >= lb && tx < rb) { measure = sys1.start_measure + i; break; }
-          }
-          notes.push({ tx: Math.round(tx), ty: Math.round(ty), clef: inBass ? 'bass' : inTreble ? 'treble' : 'UNMATCHED', measure });
-        }
-      });
-      notes.sort((a,b) => a.tx - b.tx);
-      console.log('[DIAG] System 1 noteheads (bass_top=' + sys1.bass_top + ', bass_bot=' + sys1.bass_bot + '):');
-      notes.filter(n => n.clef === 'bass' || n.clef === 'UNMATCHED').forEach(n =>
-        console.log(`  [DIAG] ${n.clef} tx=${n.tx} ty=${n.ty} → m${n.measure}`)
-      );
-      console.log('[DIAG] bass_bot+50 threshold =', sys1.bass_bot + 50);
-    }, 3000); // wait 3s for SVG to load
+<!-- Diagnostic: intercept MutationObserver to catch when page 1 SVG is injected,
+     then scan ALL noteheads + ALL TieSegments to find what's being excluded -->
+<script>
+(function() {
+  // Watch for #scorePage1 to get an SVG child injected
+  const observer = new MutationObserver(() => {
+    const svgEl = document.querySelector('#scorePage1 svg');
+    if (!svgEl) return;
+    observer.disconnect();
+
+    const cfg = window.SONG_CONFIG;
+    const sys1 = cfg.svgPageSystems[0][0];  // page 1, system 1
+    const GRACE_SCALE = 0.85;
+
+    // Collect all raw noteheads
+    const raw = [];
+    svgEl.querySelectorAll('path.Note').forEach(el => {
+      const t = el.getAttribute('transform') || '';
+      const mm = t.match(/matrix\(\s*([\d.eE+-]+)[,\s]+([\d.eE+-]+)[,\s]+([\d.eE+-]+)[,\s]+([\d.eE+-]+)[,\s]+([\d.eE+-]+)[,\s]+([\d.eE+-]+)\s*\)/);
+      if (!mm) return;
+      raw.push({ tx: parseFloat(mm[5]), ty: parseFloat(mm[6]), scale: parseFloat(mm[1]) });
+    });
+
+    // Collect tie endpoints (right side = continuation notehead)
+    const tieRights = [];
+    svgEl.querySelectorAll('path.TieSegment').forEach(el => {
+      const d = el.getAttribute('d') || '';
+      const nums = [...d.matchAll(/[-\d.]+/g)].map(m => parseFloat(m[0]));
+      if (nums.length < 8) return;
+      tieRights.push({ ex: nums[6], ey: nums[7] });
+    });
+
+    // Find which noteheads would be excluded (bestDist < 40) — same logic as engine
+    const excluded = new Set();
+    for (const tie of tieRights) {
+      let bestIdx = -1, bestDist = Infinity;
+      for (let i = 0; i < raw.length; i++) {
+        const dist = Math.abs(raw[i].tx - tie.ex) + Math.abs(raw[i].ty - tie.ey) * 0.3;
+        if (dist < bestDist) { bestDist = dist; bestIdx = i; }
+      }
+      if (bestIdx >= 0 && bestDist < 40) excluded.add(bestIdx);
+    }
+
+    // Now scan system 1 noteheads (measures 1-7) — both kept and excluded
+    const bls = sys1.barline_xs;
+    console.log(`[DIAG] === PAGE 1 SYSTEM 1 FULL SCAN (bass_top=${sys1.bass_top}, bass_bot=${sys1.bass_bot}) ===`);
+    console.log(`[DIAG] tie exclusion threshold=40, ties found=${tieRights.length}, excluded noteheads=${excluded.size}`);
+
+    for (let ri = 0; ri < raw.length; ri++) {
+      const n = raw[ri];
+      // Only within system 1 y range (very generous)
+      if (n.ty < sys1.treble_top - 150 || n.ty > sys1.bass_bot + 250) continue;
+
+      const inTreble = n.ty >= sys1.treble_top - 80 && n.ty <= sys1.treble_bot + 50;
+      const inBass   = n.ty >= sys1.bass_top - 50   && n.ty <= sys1.bass_bot + 50;
+      const clef = inBass ? 'bass' : inTreble ? 'treble' : 'OUT_OF_BOUNDS';
+
+      let measure = '?';
+      for (let i = 0; i < bls.length - 1; i++) {
+        const lb = i===0 ? bls[i]-20 : bls[i];
+        const rb = i===bls.length-2 ? bls[i+1]+20 : bls[i+1];
+        if (n.tx >= lb && n.tx < rb) { measure = sys1.start_measure + i; break; }
+      }
+
+      const status = excluded.has(ri) ? 'EXCLUDED(tie)' : 'kept';
+      if (clef === 'bass' || clef === 'OUT_OF_BOUNDS' || status === 'EXCLUDED(tie)') {
+        console.log(`[DIAG] ri=${ri} ${clef} tx=${n.tx.toFixed(0)} ty=${n.ty.toFixed(0)} m=${measure} scale=${n.scale.toFixed(3)} → ${status}`);
+      }
+    }
+    console.log('[DIAG] === END SCAN ===');
   });
+  observer.observe(document.getElementById('scoreObj') || document.body, { childList: true, subtree: true });
+})();
 </script>
 
 <script type="module" src="../engine.js"></script>
