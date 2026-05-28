@@ -4119,6 +4119,24 @@ practiceNotes.forEach((n, i) => {
 });
 console.groupEnd();
 
+// DEBUG: dump rank map entries for m46 bass to find missing rank=0
+{
+    const m46bass = [];
+    for (const [mk, entry] of _midiRankMap) {
+        if (entry.sheet_measure === 46 && entry.clef === 'bass') {
+            m46bass.push({ mk, rank: entry.rank });
+        }
+    }
+    m46bass.sort((a,b) => a.rank - b.rank);
+    console.log('🔍 Rank map entries for m46|bass:', m46bass.map(e => `rank${e.rank}: ${e.mk}`).join(' | '));
+    // Also check what allMidiNotes has near m46
+    const m46time = MEASURE_TIME_MAP[46];
+    if (m46time) {
+        const near = allMidiNotes.filter(n => n.time >= m46time.start - 0.1 && n.time < m46time.end + 0.1 && n.track === 'bass');
+        console.log(`🔍 allMidiNotes bass near m46 (${m46time.start.toFixed(4)}–${m46time.end.toFixed(4)}):`, near.map(n => `t=${n.time.toFixed(4)} midi=${n.midi}`).join(' | '));
+    }
+}
+
 // scoreNoteOffset no longer used for highlighting — kept at 0
 scoreNoteOffset = 0;
 
