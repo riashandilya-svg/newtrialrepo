@@ -524,6 +524,44 @@ window.SONG_CONFIG = {
 })();
 </script>
 
+<!-- Diagnostic: log all Page 1 noteheads so we can verify bass_bot bounds -->
+<script type="module">
+  // Run after engine has loaded and rendered the SVG pages
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      const svgEl = document.querySelector('#scorePage1 svg');
+      if (!svgEl) { console.warn('[DIAG] Page 1 SVG not loaded yet'); return; }
+      const sys1 = window.SONG_CONFIG.svgPageSystems[0][0]; // first system: m1-7
+      const notes = [];
+      svgEl.querySelectorAll('path.Note').forEach(el => {
+        const t = el.getAttribute('transform') || '';
+        const mm = t.match(/matrix\(\s*([\d.eE+-]+)[,\s]+([\d.eE+-]+)[,\s]+([\d.eE+-]+)[,\s]+([\d.eE+-]+)[,\s]+([\d.eE+-]+)[,\s]+([\d.eE+-]+)\s*\)/);
+        if (!mm) return;
+        const tx = parseFloat(mm[5]), ty = parseFloat(mm[6]);
+        // Only log notes near system 1 y range (with generous tolerance)
+        if (ty >= sys1.treble_top - 100 && ty <= sys1.bass_bot + 200) {
+          const inTreble = ty >= sys1.treble_top - 80 && ty <= sys1.treble_bot + 50;
+          const inBass   = ty >= sys1.bass_top   - 50 && ty <= sys1.bass_bot + 50;
+          const bls = sys1.barline_xs;
+          let measure = '?';
+          for (let i = 0; i < bls.length - 1; i++) {
+            const lb = i===0 ? bls[i]-20 : bls[i];
+            const rb = i===bls.length-2 ? bls[i+1]+20 : bls[i+1];
+            if (tx >= lb && tx < rb) { measure = sys1.start_measure + i; break; }
+          }
+          notes.push({ tx: Math.round(tx), ty: Math.round(ty), clef: inBass ? 'bass' : inTreble ? 'treble' : 'UNMATCHED', measure });
+        }
+      });
+      notes.sort((a,b) => a.tx - b.tx);
+      console.log('[DIAG] System 1 noteheads (bass_top=' + sys1.bass_top + ', bass_bot=' + sys1.bass_bot + '):');
+      notes.filter(n => n.clef === 'bass' || n.clef === 'UNMATCHED').forEach(n =>
+        console.log(`  [DIAG] ${n.clef} tx=${n.tx} ty=${n.ty} → m${n.measure}`)
+      );
+      console.log('[DIAG] bass_bot+50 threshold =', sys1.bass_bot + 50);
+    }, 3000); // wait 3s for SVG to load
+  });
+</script>
+
 <script type="module" src="../engine.js"></script>
 
 <!-- Supabase + Paywall (shared) -->
