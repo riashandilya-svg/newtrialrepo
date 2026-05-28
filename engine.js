@@ -2618,19 +2618,19 @@ const visualStart =
             // If this preview note is from the repeat pass, mirror to first-pass SVG elements
             const physMeasure = getMeasureFromTime(note.time);
             const isRepeatPass = physMeasure !== null &&
-                physMeasure > REPEAT_END + 1 &&
-                physMeasure <= REPEAT_END + REPEAT_LEN + 1;
+                physMeasure >= REPEAT_START + REPEAT_LEN &&
+                physMeasure <= REPEAT_END + REPEAT_LEN;
 
             let notesToHighlight;
             if (isRepeatPass) {
-                const firstPassPlayTime = notePlayTime - REPEAT_PHYSICAL_OFFSET * secondsPerMeasure;
+                const firstPassPlayTime = notePlayTime - REPEAT_LEN * secondsPerMeasure;
                 notesToHighlight = sectionNotes.filter(n =>
                     Math.abs((n.playTime ?? n.time) - firstPassPlayTime) < 0.01
                 );
                 if (!notesToHighlight.length) {
                     // First-pass measures are not in the current range (e.g. range 36→37).
                     // Fall back: find the first-pass equivalents by raw MIDI time in allMidiNotes.
-                    const firstPassRawTime = note.time - REPEAT_PHYSICAL_OFFSET * secondsPerMeasure;
+                    const firstPassRawTime = note.time - REPEAT_LEN * secondsPerMeasure;
                     notesToHighlight = allMidiNotes.filter(n =>
                         Math.abs(n.time - firstPassRawTime) < 0.01
                     );
@@ -4373,14 +4373,13 @@ addMidiFallingRectangle(
                     // (physical measures 15-21 → logical 7-13).
                     const physMeasure = getMeasureFromTime(note.time);
                     const isRepeatPass = physMeasure !== null &&
-                        physMeasure > REPEAT_END + 1 &&
-                        physMeasure <= REPEAT_END + REPEAT_LEN + 1;
+                        physMeasure >= REPEAT_START + REPEAT_LEN &&
+                        physMeasure <= REPEAT_END + REPEAT_LEN;
 
                     let notesToHighlight;
                     if (isRepeatPass) {
                         // Mirror: find the first-pass notes at the equivalent time
-                        // (subtract the physical offset between repeat pass and first pass).
-                        const firstPassTime = note.time - REPEAT_PHYSICAL_OFFSET * secondsPerMeasure;
+                        const firstPassTime = note.time - REPEAT_LEN * secondsPerMeasure;
                         notesToHighlight = allMidiNotes.filter(n =>
                             Math.abs(n.time - firstPassTime) < 0.01
                         );
@@ -4583,7 +4582,24 @@ function _buildSvgNoteIndex() {
             if (bestIdx >= 0 && bestDist < 40) tiedNoteheadSet.add(bestIdx);
         });
 
-        // No repeat-boundary special cases — tied notes are excluded normally
+        // Special case — measure REPEAT_END treble, page 2:
+        // The tied whole note that continues from m(REPEAT_END-1) is correctly identified as
+        // a tied continuation and would normally be excluded. But we want it highlighted
+        // (it's visually prominent). Un-exclude it so it ends up in _svgBucketsPage2[REPEAT_END][treble].
+        if (pageNum === 2 && REPEAT_END > 0) {
+            const sysRepeatEnd = SVG_PAGE_SYSTEMS[1]?.find(s => s.start_measure === REPEAT_END);
+            if (sysRepeatEnd) {
+                for (const ri of tiedNoteheadSet) {
+                    const rn = raw[ri];
+                    const inTreble = rn.ty >= sysRepeatEnd.treble_top - 50 && rn.ty <= sysRepeatEnd.treble_bot + 50;
+                    const inMx    = rn.tx >= sysRepeatEnd.barline_xs[0] && rn.tx < sysRepeatEnd.barline_xs[1];
+                    if (inTreble && inMx) {
+                        tiedNoteheadSet.delete(ri);
+                        break; // only one tied whole note to un-exclude
+                    }
+                }
+            }
+        }
 
         totalTied += tiedNoteheadSet.size;
 
@@ -4975,7 +4991,8 @@ function _applyHighlight(indices, colorMap) {
     _currentHighlightEls = idxArray.map(x => (typeof x === 'number' ? _svgNoteElements[x]?.el : x)).filter(Boolean);
 
     // ── DEBUG: log every highlighted note and flag strays ──────────────────
-    if (idxArray.length > 0) {
+    // Only check for strays when actively waiting for user input (not during preview/playback)
+    if (idxArray.length > 0 && waitingForInput) {
         const expectedMidis = new Set([...currentChordNotes]);
         const highlightedNotes = idxArray.map(x => {
             if (typeof x !== 'number') return { idx: '?', midi: null, name: '?', colorKey: 'unknown' };
@@ -4983,13 +5000,11 @@ function _applyHighlight(indices, colorMap) {
             const color = (colorMap && colorMap.has(x)) ? colorMap.get(x)
                         : ne?.clef === 'bass' ? '#B45309' : '#9B2C6E';
             const colorKey = color === '#16a34a' ? 'green' : color === '#9B2C6E' ? 'purple' : color === '#B45309' ? 'gold' : color;
-            // Reverse-lookup MIDI for this SVG index via _midiRankMap
             let midi = null;
             for (const [, entry] of _midiRankMap) {
                 const bucket = _svgBuckets[entry.sheet_measure]?.[entry.clef];
                 if (bucket && bucket[entry.rank] === x) { midi = entry.midi; break; }
             }
-            // Any highlighted note (purple, gold, OR green) not in currentChordNotes is a stray
             const stray = midi !== null && !expectedMidis.has(midi);
             return { idx: x, midi, name: midi ? getNoteName(midi) : '?', colorKey, stray };
         });
@@ -5078,19 +5093,19 @@ function onTrainingNoteSpawned(noteObj) {
     // If this note is from the repeat pass, mirror to the first-pass equivalent notes
     const physMeasure = getMeasureFromTime(noteObj.time);
     const isRepeatPass = physMeasure !== null &&
-        physMeasure > REPEAT_END + 1 &&
-        physMeasure <= REPEAT_END + REPEAT_LEN + 1;
+        physMeasure >= REPEAT_START + REPEAT_LEN &&
+        physMeasure <= REPEAT_END + REPEAT_LEN;
 
     let simultaneousNotes;
     if (isRepeatPass) {
-        const firstPassPlayTime = notePlayTime - REPEAT_PHYSICAL_OFFSET * secondsPerMeasure;
+        const firstPassPlayTime = notePlayTime - REPEAT_LEN * secondsPerMeasure;
         simultaneousNotes = practiceNotes.filter(n =>
             Math.abs((n.playTime ?? n.time) - firstPassPlayTime) < 0.01
         );
         if (!simultaneousNotes.length) {
             // First-pass measures are not in the current range (e.g. range 36→37).
             // Fall back: find the first-pass equivalents by raw MIDI time in allMidiNotes.
-            const firstPassRawTime = noteObj.time - REPEAT_PHYSICAL_OFFSET * secondsPerMeasure;
+            const firstPassRawTime = noteObj.time - REPEAT_LEN * secondsPerMeasure;
             simultaneousNotes = allMidiNotes.filter(n =>
                 Math.abs(n.time - firstPassRawTime) < 0.01
             );
