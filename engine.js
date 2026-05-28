@@ -3996,6 +3996,43 @@ practiceNotes = allMidiNotes
         if (p === null) return null;
 
         let overflowCorrected = false;
+
+        // Always check the rank map to see if this note was overflowed to a different
+        // sheet measure (barline-straddle or grace-note-before-barline correction).
+        // If the rank map places the note in a different measure than its raw MIDI time,
+        // we must use the rank-map's measure for playTime/scheduling — otherwise the
+        // note is practised in the wrong slot (e.g. rank=0 of m3 fires during m2).
+        {
+            const mk = `${note.time.toFixed(4)}|${note.midi}|${note.track}`;
+            const entry = _midiRankMap.get(mk);
+            if (entry) {
+                const rankSheet = entry.sheet_measure;
+                const rawSheet  = PHYSICAL_TO_LOGICAL[p] ?? p;
+                if (rankSheet !== rawSheet) {
+                    // The rank map moved this note to a different measure.
+                    // Re-assign p to match the rank map's sheet measure.
+                    if (allowedLogical.has(rankSheet)) {
+                        const correctedPhys = physicalSeq.find(
+                            q => (PHYSICAL_TO_LOGICAL[q] ?? q) === rankSheet
+                        );
+                        if (correctedPhys !== undefined) {
+                            console.log(`🔁 Rank-map rescue: time=${note.time.toFixed(4)} physMeasure ${p}→${correctedPhys} (sheet ${rawSheet}→${rankSheet})`);
+                            p = correctedPhys;
+                            overflowCorrected = (note.time < (MEASURE_TIME_MAP[p]?.start ?? 0));
+                        } else {
+                            // Rank map placed it in a measure outside our selection — skip.
+                            return null;
+                        }
+                    } else if (!allowedPhysical.has(p)) {
+                        // Neither the raw nor the rank-map measure is in the selection — skip.
+                        return null;
+                    }
+                    // If rankSheet not in allowedLogical but raw p IS allowed, fall through
+                    // (the note plays in p but highlights wherever the rank map says).
+                }
+            }
+        }
+
         if (!allowedPhysical.has(p)) {
             // The raw MIDI time landed in a measure just outside the selection.
             // Check whether the rank-map overflow correction moved it into an
