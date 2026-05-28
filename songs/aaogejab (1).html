@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aaoge Jab Tum Saajana</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../engine.css">
+<!-- ✏️ Per-song color override — aaogejab uses blue accent -->
+<style>
+  :root {
+    --accent-primary:   #3B82F6;
+    --accent-primary-hover: #2563EB;
+    --blue1: rgba(59, 130, 246, 0.22);
+    --blue2: rgba(147, 197, 253, 0.16);
+    --border-soft: rgba(59, 130, 246, 0.18);
+  }
+
+  /* Blue radial gradient background — unique to aaogejab */
+  body {
+    background:
+      radial-gradient(900px 520px at 20% 0%,   var(--blue1),  transparent 60%),
+      radial-gradient(900px 520px at 85% 10%,  rgba(255,255,255,0.10), transparent 62%),
+      radial-gradient(780px 480px at 50% 80%,  var(--blue2),  transparent 60%),
+      radial-gradient(520px 320px at 35% 55%,  rgba(59,130,246,0.10), transparent 60%),
+      #ffffff;
+  }
+
+  /* Blue tint on paywall card border */
+  #paywall {
+    border-color: rgba(59, 130, 246, 0.22);
+  }
+
+  /* BPM input border matches blue */
+  #bpmInput {
+    border-color: rgba(59, 130, 246, 0.25) !important;
+  }
+
+  /* stats toggle accent */
+  #notesStatsToggle,
+  #scoreStatsToggle {
+    accent-color: #3B82F6 !important;
+  }
+</style>
+</head>
+<body>
+
+<script src="../config.js"></script>
+<script>
+window.SONG_CONFIG = {
+  id:        "aaogejab",
+  title:     "Aaoge Jab Tum Saajana",
+  productId: "song:aaogejab",
+  midiFile:  "../midi/aaogejab.mid",
+  svgBase:   "../svg/aaogejab",
+  svgPages:  3,
+  timeSignature: [4, 4],
+  measures:      71,
+  repeats:       [],   // MIDI is pre-expanded — bars 7–14 already duplicated in timeline
+  pickupBeats:   0,
+  sections: [
+    { label: "Intro",                     start: 1,  end: 6  },
+    { label: "Aaoge jab tum — saajana",   start: 7,  end: 14 },
+    { label: "Repeat — saajana",          start: 15, end: 21 },
+    { label: "Antara I — Neel gagan",     start: 22, end: 35 },
+    { label: "Mukhda reprise",            start: 36, end: 50 },
+    { label: "Antara II — Tum jo kahen",  start: 51, end: 64 },
+    { label: "Coda / ending",             start: 65, end: 71 },
+  ],
+  brandUrl:     "https://riashandilya-svg.github.io/classicbollywoodmelodies/index.html",
+  brandName:    "Ria Om Shandilya",
+  youtubeUrl:   "https://www.youtube.com/watch?v=FaJh5yr51iw",
+  youtubeLabel: "Quick Guide to Measures &amp; Sheet",
+};
+</script>
+
+<script>
+  (function(){
+    if(localStorage.getItem('darkMode')==='true'){
+      document.body.classList.add('dark-mode');
+      document.addEventListener('DOMContentLoaded',function(){
+        var btn=document.getElementById('darkModeToggle');
+        if(btn) btn.textContent='☀️';
+      });
+    }
+  })();
+</script>
+
+<div id="brandBar">
+  <!-- Score / Falling-notes toggle — left side -->
+  <div id="viewToggleBar">
+      <span id="viewToggleLabel">Notes</span>
+      <label class="toggle-switch" title="Switch between falling notes and sheet music score">
+          <input type="checkbox" id="scoreModeToggle">
+          <div class="toggle-track"></div>
+          <div class="toggle-thumb"></div>
+      </label>
+      <span style="font-size:13px;font-weight:600;color:var(--text-main);">Score</span>
+  </div>
+
+  <a href="" id="brandLink">
+    <span id="brandName"></span>
+  </a>
+
+  <a href="" id="youtubeBtn" target="_blank">
+    <span id="youtubeBtnLabel">Quick Guide to Measures &amp; Sheet</span>
+  </a>
+</div>
+
+
+<button id="darkModeToggle" title="Toggle dark mode" onclick="document.body.classList.toggle('dark-mode'); const dm=document.body.classList.contains('dark-mode'); this.textContent=dm?'☀️':'🌙'; localStorage.setItem('darkMode',dm)">🌙</button>
+<script>
+  (function(){
+    if(localStorage.getItem('darkMode')==='true'){
+      document.body.classList.add('dark-mode');
+      document.addEventListener('DOMContentLoaded',function(){
+        var btn=document.getElementById('darkModeToggle');
+        if(btn) btn.textContent='☀️';
+      });
+    }
+  })();
+</script>
+
+      <h1 id="songTitle"></h1>
+
+
+<div id="paywall"></div>
+
+<!-- ===== MOUSE DEBUG OVERLAY ===== -->
+<div id="mouseDebug" style="
+  position: fixed;
+  bottom: 12px;
+  left: 12px;
+  z-index: 99999;
+  background: rgba(0,0,0,0.82);
+  color: #0f0;
+  font-family: monospace;
+  font-size: 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  min-width: 300px;
+  max-width: 420px;
+  pointer-events: none;
+  line-height: 1.6;
+  display: none;
+">
+  <div style="color:#FFD54F;font-weight:bold;margin-bottom:4px">&#x1F5B1; Mouse Input Debug</div>
+  <div id="dbg-click-count">Clicks registered: 0</div>
+  <div id="dbg-swallowed">Swallowed (guard fired): 0</div>
+  <div id="dbg-latch-state">Latched notes: -</div>
+  <div id="dbg-pressed-state">midiPressedNotes: -</div>
+  <div id="dbg-last-event">Last event: -</div>
+  <div id="dbg-hold-state">holdEvaluated: - | noteHoldStartTime: -</div>
+  <div id="dbg-training-state">trainingActive: - | waitingForInput: -</div>
+  <div style="margin-top:6px;color:#aaa;font-size:10px">Toggle: Ctrl+Shift+D</div>
+</div>
+
+      <div id="app">
+
+      <!-- 🎯 Training Progress Bar -->
+<div id="trainingProgress" style="display:none;">
+    <div id="trainingProgressFill"></div>
+    <span id="trainingProgressText">0%</span>
+</div>
+
+
+<!-- 📄 Score View (hidden by default) -->
+<div id="scoreView">
+<div id="scorePageWrapper">
+<div id="scoreObj" style="display:block;width:100%;overflow:visible;">
+  <div id="scorePage1" style="width:100%;"></div>
+  <div id="scorePage2" style="width:100%;"></div>
+  <div id="scorePage3" style="width:100%;"></div>
+</div>
+        <div id="scoreHighlight" style="display:none;"></div>
+    </div>
+
+    <!-- FIX 1: Page nav kept in DOM so JS doesn't crash, but hidden via CSS above -->
+    <div id="scorePageNav">
+        <button id="scorePrevBtn" disabled>‹ Prev</button>
+        <span id="scorePageLabel">Page 1 / 3</span>
+        <button id="scoreNextBtn">Next ›</button>
+    </div>
+</div>
+
+<!-- Current note display (shown in score mode during practice) -->
+<div id="scoreNoteDisplay">
+    <span>Play:</span>
+    <span id="scoreNoteName">—</span>
+    <span id="scoreNoteHint" style="font-size:14px;opacity:0.75;"></span>
+</div>
+<!-- Stats Bar -->
+<div id="statsBar">
+    <div class="stat-item">
+        <span class="stat-val" id="statHold">—</span>
+        <span>Hold for</span>
+    </div>
+    <div class="stat-item notes-stat-extra">
+        <span class="stat-val" id="statAccuracy">—</span>
+        <span>Accuracy</span>
+    </div>
+    <div class="stat-item notes-stat-extra">
+        <span class="stat-val" id="statCombo">×0</span>
+        <span>Combo</span>
+    </div>
+    <div class="stat-item notes-stat-extra">
+        <span class="stat-val" id="statPerfect">0</span>
+        <span>Perfect Hits</span>
+    </div>
+    <div class="stat-item notes-stat-extra">
+        <span class="stat-val" id="statBPM">100</span>
+        <span>BPM</span>
+    </div>
+    <label title="Hide extra stats" style="display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;font-size:10px;font-weight:600;color:#aaa;letter-spacing:0.04em;white-space:nowrap;">
+        <input type="checkbox" id="notesStatsToggle" checked style="width:13px;height:13px;accent-color:#3B82F6;cursor:pointer;">
+        all stats
+    </label>
+</div>
+
+<!-- Measure Timeline -->
+<div id="measureTimeline"></div>
+
+<!-- MIDI load error banner (hidden until fetch fails) -->
+<div id="midiLoadError" role="alert" aria-live="assertive"></div>
+
+<!-- Feedback right below stats box -->
+<div id="feedbackArea">
+    <div id="feedback"></div>
+    <div id="holdInfo" style="color:#333;"></div>
+</div>
+
+<div id="bottomDock">
+
+    <div id="scoreKeyboardLabel">🎹 Play the highlighted key</div>
+
+    <!-- Game Stage wrapping the canvas -->
+    <div id="gameStage">
+      <div id="hitLine"></div>
+      <canvas id="canvas" width="1400"></canvas>
+    </div>
+
+<div id="countdownOverlay">3</div>
+<!-- 🎯 Right-side note indicators -->
+<div id="sideNoteFeedback">
+
+    <div class="side-note">
+        <div class="note-label">You pressed</div>
+        <div id="pressedNoteCircle" class="note-circle"></div>
+    </div>
+
+    <div class="side-note">
+        <div class="note-label">Correct note</div>
+        <div id="correctNoteCircle" class="note-circle correct"></div>
+    </div>
+</div>
+
+<!-- 🟦 Free Mode button — fixed above side note circles -->
+<button id="freeModeButton" class="side-floating">Free<br>Mode</button>
+
+<!-- ====== CONTROL PANEL ====== -->
+<div id="controlPanel">
+
+  <!-- SECTION card -->
+  <div class="ctrl-card" id="panelSectionCard">
+    <div class="ctrl-card-title">SECTION</div>
+    <div id="panelSectionButtons"></div>
+  </div>
+
+  <!-- PLAYBACK card -->
+  <div class="ctrl-card" id="panelPlaybackCard">
+    <div class="ctrl-card-title">PLAYBACK</div>
+
+    <!-- Hand selector -->
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+      <span style="font-size:13px;color:#666;white-space:nowrap;">Hand</span>
+      <select id="panelHandSelect" style="flex:1;font-size:13px;border-radius:8px;border:1px solid rgba(59,130,246,0.22);padding:4px 8px;background:rgba(255,255,255,0.9);color:var(--text-main);outline:none;">
+        <option value="treble">Right (Treble)</option>
+        <option value="bass">Left (Bass)</option>
+        <option value="both">Both Hands</option>
+      </select>
+    </div>
+
+    <!-- Measure range -->
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
+      <span style="font-size:13px;color:#666;white-space:nowrap;">Measures</span>
+      <input id="panelStartMeasure" type="number" min="1" value="1"
+        style="width:52px;text-align:center;font-size:14px;font-weight:700;font-family:inherit;border:1px solid rgba(59,130,246,0.22);border-radius:8px;padding:4px 6px;background:rgba(255,255,255,0.9);color:var(--text-main);outline:none;">
+      <span style="color:#999;">–</span>
+      <input id="panelEndMeasure" type="number" min="1" value="4"
+        style="width:52px;text-align:center;font-size:14px;font-weight:700;font-family:inherit;border:1px solid rgba(59,130,246,0.22);border-radius:8px;padding:4px 6px;background:rgba(255,255,255,0.9);color:var(--text-main);outline:none;">
+    </div>
+
+    <!-- Play / Song / Stop -->
+    <div class="ctrl-grid-3" style="margin-bottom:8px;">
+      <button class="ctrl-btn" id="panelStartPractice" style="background:var(--accent-primary);color:#fff;">▶ Practice</button>
+      <button class="ctrl-btn" id="panelPlaySong"      style="background:var(--accent-primary);color:#fff;">♫ Full Song</button>
+      <button class="ctrl-btn" id="panelStop"          style="background:#EF4444;color:#fff;">■ Stop</button>
+    </div>
+
+    <!-- Metronome row -->
+    <div class="ctrl-grid-3" style="margin-bottom:8px;">
+      <button class="ctrl-btn" id="panelBeatToggle">Beat</button>
+      <button class="ctrl-btn" id="panelCountToggle">Counting</button>
+      <button class="ctrl-btn" id="panelSubdivToggle">1 &amp; 2 &amp;</button>
+    </div>
+
+    <!-- Speed row -->
+    <div class="ctrl-speed-row">
+      <button class="ctrl-btn" id="panelSpeedDown" style="flex:0;padding:6px 12px !important;">–</button>
+      <span id="panelSpeedDisplay" style="font-size:16px;font-weight:700;min-width:50px;text-align:center;">1.0×</span>
+      <button class="ctrl-btn" id="panelSpeedUp"   style="flex:0;padding:6px 12px !important;">+</button>
+    </div>
+
+    <!-- BPM row -->
+    <div class="ctrl-speed-row" style="margin-top:6px;">
+      <span style="font-size:13px;color:#666;white-space:nowrap;">BPM</span>
+      <input
+        id="bpmInput"
+        type="number"
+        min="20" max="300" step="1"
+        placeholder="—"
+        style="
+          width:70px;
+          text-align:center;
+          font-size:15px;
+          font-weight:700;
+          font-family:inherit;
+          border:1px solid rgba(59,130,246,0.25);
+          border-radius:8px;
+          padding:4px 6px;
+          background:rgba(255,255,255,0.9);
+          color:var(--text-main);
+          outline:none;
+          transition:border-color 0.2s;
+        "
+        title="Type a BPM to set playback speed"
+      />
+      <button
+        id="bpmSetBtn"
+        class="ctrl-btn"
+        style="flex:0;padding:6px 10px !important;font-size:12px !important;"
+        title="Apply BPM"
+      >Set</button>
+      <button
+        id="bpmResetBtn"
+        class="ctrl-btn"
+        style="flex:0;padding:6px 8px !important;font-size:12px !important;"
+        title="Reset to original BPM"
+      >↺</button>
+    </div>
+  </div>
+
+  <!-- UTILITY card -->
+  <div class="ctrl-card" id="panelUtilityCard">
+    <div class="ctrl-card-title">UTILITY</div>
+    <div class="ctrl-grid-2">
+      <button class="ctrl-btn" onclick="document.getElementById('freeModeButton').click()">🎹 Free Mode</button>
+      <button class="ctrl-btn" onclick="document.getElementById('toggleNamesButton').click()">👁 Hide Note Names</button>
+      <label class="ctrl-btn" style="display:flex;align-items:center;justify-content:center;gap:7px;cursor:pointer;">
+        <input type="checkbox" id="panelLoopCheckbox" onchange="document.getElementById('loopCheckbox').checked=this.checked; document.getElementById('loopCheckbox').dispatchEvent(new Event('change'))">
+        🔁 Loop Section
+      </label>
+      <label class="ctrl-btn" style="display:flex;align-items:center;justify-content:center;gap:7px;cursor:pointer;">
+        <input type="checkbox" id="panelSkipRepeatsCheckbox" onchange="document.getElementById('skipRepeatsCheckbox').checked=this.checked; document.getElementById('skipRepeatsCheckbox').dispatchEvent(new Event('change'))">
+        ↩ Skip Repeats
+      </label>
+      <button class="ctrl-btn ctrl-grid-full" onclick="document.getElementById('resetButton').click()">↺ Reset</button>
+    </div>
+  </div>
+
+  <!-- FEEDBACK card — fills gap under Playback + Utility via grid placement -->
+  <div class="ctrl-card" id="panelFeedbackCard">
+    <div id="panelFeedbackBubble"></div>
+  </div>
+
+  <!-- STATS card -->
+  <div class="ctrl-card" id="panelStatsCard">
+    <div class="ctrl-card-title" style="display:flex;align-items:center;justify-content:space-between;">
+      <span>STATS</span>
+      <label title="Show/hide stats" style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:10px;font-weight:600;color:#aaa;letter-spacing:0.04em;">
+        <input type="checkbox" id="scoreStatsToggle" checked style="width:13px;height:13px;accent-color:#3B82F6;cursor:pointer;">
+        all
+      </label>
+    </div>
+    <div class="ctrl-stats-grid">
+      <div class="ctrl-stat-item">
+        <span class="ctrl-stat-val" id="panelStatHold">—</span>
+        <span class="ctrl-stat-label">Hold for</span>
+      </div>
+      <div class="ctrl-stat-item score-stat-extra">
+        <span class="ctrl-stat-val" id="panelStatAccuracy">—</span>
+        <span class="ctrl-stat-label">Accuracy</span>
+      </div>
+      <div class="ctrl-stat-item score-stat-extra">
+        <span class="ctrl-stat-val" id="panelStatCombo">×0</span>
+        <span class="ctrl-stat-label">Combo</span>
+      </div>
+      <div class="ctrl-stat-item score-stat-extra">
+        <span class="ctrl-stat-val" id="panelStatPerfect">0</span>
+        <span class="ctrl-stat-label">Perfect</span>
+      </div>
+      <div class="ctrl-stat-item score-stat-extra">
+        <span class="ctrl-stat-val" id="panelStatBPM">100</span>
+        <span class="ctrl-stat-label">BPM</span>
+      </div>
+    </div>
+    <!-- Progress bar — only visible in score mode -->
+    <div id="panelProgressWrap">
+      <div id="panelProgressBar">
+        <div id="panelProgressFill"></div>
+      </div>
+      <div id="panelProgressText">0%</div>
+    </div>
+  </div>
+
+  <!-- NOTE CIRCLES card — score mode only -->
+  <div class="ctrl-card" id="panelNoteCirclesCard">
+    <div class="ctrl-card-title">NOTES</div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+      <div class="panel-note-item">
+        <div class="panel-note-circle" id="panelPressedCircle"></div>
+        <span class="panel-note-circle-label">You Pressed</span>
+      </div>
+      <div class="panel-note-item">
+        <div class="panel-note-circle correct" id="panelCorrectCircle"></div>
+        <span class="panel-note-circle-label">Correct Note</span>
+      </div>
+    </div>
+  </div>
+
+
+</div>
+<!-- ====== END PANEL ====== -->
+
+<div class="button-group" id="playbackControls" style="position:absolute;opacity:0;pointer-events:none;height:0;overflow:hidden;">
+    <div id="practiceControls" style="display:flex;gap:10px;align-items:center;">
+        <label>
+            Hand:
+            <select id="handSelect">
+                <option value="treble">Right Hand (Treble)</option>
+                <option value="bass">Left Hand (Bass)</option>
+                <option value="both">Both Hands</option>
+            </select>
+        </label>
+    
+        <label>
+            Start Measure:
+            <input id="startMeasureInput" type="number" min="1" value="1" style="width:60px;">
+        </label>
+        
+        <label>
+            End Measure:
+            <input id="endMeasureInput" type="number" min="1" value="4" style="width:60px;">
+        </label>
+        
+    
+        <button id="startPracticeButton">Start Practice</button>
+    </div>
+    <button id="stopButton">Stop</button>
+    <button id="resetButton">Reset</button>
+    <button id="toggleNamesButton">Hide Note Names</button>
+<button id="playSongButton">Play Full Song</button>
+<button id="beatToggle">Beat</button>
+<button id="countToggle">Counting</button>
+<button id="subdivisionToggle">1 & 2 &</button>
+<button id="languageToggle">EN</button>
+    
+<label style="display:flex;align-items:center;gap:6px;font-size:16px;">
+    <input type="checkbox" id="skipRepeatsCheckbox">
+    Skip repeats in sheet
+</label>
+
+<label style="display:flex;align-items:center;gap:6px;font-size:16px;">
+    <input type="checkbox" id="loopCheckbox">
+    Loop section
+</label>
+
+
+    <button id="speedDown">–</button>
+    <span id="speedDisplay" style="font-size:18px;min-width:60px;text-align:center;">1.0×</span>
+    <button id="speedUp">+</button>
+</div>
+
+<div id="notesDisplay" style="display: none;">
+    <h2>Note Numbers:</h2>
+    <div class="note-list" id="noteList"></div>
+</div>   <!-- closes bottomDock -->
+</div>   <!-- closes midiDisplay -->
+</div> <!-- closes app -->
+
+<script defer src="https://cdn.jsdelivr.net/npm/tone@14.7.77/build/Tone.js"></script>
+<script type="module" src="../engine.js"></script>
+
+<!-- Supabase + Paywall (shared) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../supabaseClient.js"></script>
+<script src="../paywall.js"></script>
+
+<!-- Login check + paywall trigger -->
+<script type="module">
+  if (window.DEV_MODE) {
+    console.info('[DEV_MODE] Auth and paywall bypassed. Set DEV_MODE=false in config.js to go live.');
+    document.getElementById('app').style.display = 'block';
+  } else if (!window.supabase) {
+    console.error('[FATAL] window.supabase not initialized.');
+  } else {
+    async function requireLogin() {
+      try {
+        const { data } = await window.supabase.auth.getSession();
+        if (!data.session) { window.location.replace("/login.html"); return false; }
+        return true;
+      } catch (e) { console.error("Auth check failed.", e); return false; }
+    }
+    const loggedIn = await requireLogin();
+    if (loggedIn) {
+      if (typeof window.showPaywall !== 'function') {
+        console.error('[FATAL] window.showPaywall not defined.');
+      } else {
+        const cfg = window.SONG_CONFIG;
+        window.showPaywall({
+          productId: cfg.productId,
+          title: "This song is locked",
+          body: "Please buy to unlock this lesson.",
+          onSuccess: () => { document.getElementById('app').style.display = 'block'; }
+        });
+      }
+    }
+    window.addEventListener("pageshow", requireLogin);
+  }
+</script>
+
+</body>
+</html>
