@@ -8,71 +8,42 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../engine.css">
-<!-- ✏️ Per-song colour override — pinkish-red palette from original aajkal -->
+<!-- ✏️ Per-song color override — uncomment and edit to change accent colour
 <style>
   :root {
-    --accent-primary:  #E57373;
-    --yellow1:         rgba(235, 50, 70, 0.22);
-    --yellow2:         rgba(255, 120, 130, 0.16);
-    --dm-accent:       #ff6b81;
-    --dm-border:       rgba(255, 107, 129, 0.25);
+    --accent-primary: #FFC107;
+    --yellow1: rgba(255, 193, 7, 0.22);
+    --yellow2: rgba(255, 235, 59, 0.16);
   }
 </style>
+-->
 </head>
 <body>
 
 <script src="../config.js"></script>
 <script>
 window.SONG_CONFIG = {
-  // ── Required ────────────────────────────────────────────────
   id:        "aajkal",
   title:     "Aaj Kal Tere Mere Pyaar Ke Charche",
   productId: "song:aajkal",
   midiFile:  "../midi/aajkal.mid",
   svgBase:   "../svg/aajkal",
-
-  timeSignature: [2, 2],   // cut time
+  timeSignature: [2, 2],
   measures:      81,
   repeats:       [],
   pickupBeats:   0,
-
-  // ── Sections (Jump to section dropdown) ─────────────────────
   sections: [
-    { label: "Intro music",               start: 1,  end: 11 },
-    { label: "Aaj kal — toh kya?",        start: 12, end: 28 },
-    { label: "Middle music",              start: 29, end: 36 },
-    { label: "Hamne toh — naam kar lia",  start: 37, end: 57 },
-    { label: "Aaj kal toh kya — reprise", start: 58, end: 73 },
+    { label: "Intro music",                      start: 1,  end: 11 },
+    { label: "Aaj kal — toh kya?",               start: 12, end: 28 },
+    { label: "Middle music",                     start: 29, end: 36 },
+    { label: "Hamne toh — naam kar lia",         start: 37, end: 57 },
+    { label: "Aaj kal toh kya — reprise",        start: 58, end: 73 },
+    { label: "Ending",                           start: 74, end: 81 },
   ],
-
-  // ── Brand bar ───────────────────────────────────────────────
   brandUrl:     "https://riashandilya-svg.github.io/classicbollywoodmelodies/index.html",
   brandName:    "Ria Om Shandilya",
-
-  // ── YouTube button ──────────────────────────────────────────
   youtubeUrl:   "https://www.youtube.com/watch?v=FaJh5yr51iw",
   youtubeLabel: "Quick Guide to Measures & Sheet",
-
-  // ── Repeat map — measures 29–36 play twice in the MIDI ──────
-  repeatStart: 29,
-  repeatEnd:   36,
-  repeatLen:   8,
-
-  buildPhysicalToLogical: function(map) {
-    const RS = 29, RL = 8;
-    for (let p = 1; p <= 81; p++) {
-      let logical;
-      if      (p <= 28)        logical = p;
-      else if (p <= 36)        logical = p;               // first pass
-      else if (p <= 36 + RL)   logical = RS + (p - 37);  // repeat pass → same sheet measures
-      else                     logical = p - RL;          // after repeat
-      map[p] = logical;
-    }
-    return map;
-  },
-
-  logicalToPhysicalFirst:  function(l) { return l <= 36 ? l : l + 8; },
-  logicalToPhysicalSecond: function(l) { return (l >= 29 && l <= 36) ? l + 8 : null; },
 };
 </script>
 
@@ -300,10 +271,10 @@ window.SONG_CONFIG = {
 </select>
     </div>
     <button class="ctrl-btn-primary" onclick="document.getElementById('startPracticeButton').click()">▶ Start Practice</button>
-    <button class="ctrl-btn" style="width:100%;margin-top:8px;background:#fff0f0!important;color:#E57373!important;border-color:#ffb7bb!important;" onclick="document.getElementById('stopButton').click()">■ Stop</button>
-    <div id="skipPreviewBox" style="display:none;margin-top:8px;background:rgba(229,115,115,0.10);border:1.5px dashed rgba(229,115,115,0.5);border-radius:12px;padding:8px 10px;text-align:center;">
-      <div style="font-size:11px;font-weight:700;color:#c62828;letter-spacing:0.07em;margin-bottom:5px;">LISTENING…</div>
-      <button id="skipPreviewBtn" class="ctrl-btn" style="width:100%;background:linear-gradient(135deg,#fff0f0,#fce4ec)!important;color:#c62828!important;border-color:#ef9a9a!important;font-weight:700!important;font-size:12px!important;" onclick="window._skipPreview()">⏩ Skip to My Turn</button>
+    <button class="ctrl-btn" style="width:100%;margin-top:8px;background:#fffde7!important;color:#B45309!important;border-color:#fde68a!important;" onclick="document.getElementById('stopButton').click()">■ Stop</button>
+    <div id="skipPreviewBox" style="display:none;margin-top:8px;background:rgba(255,193,7,0.10);border:1.5px dashed rgba(255,193,7,0.5);border-radius:12px;padding:8px 10px;text-align:center;">
+      <div style="font-size:11px;font-weight:700;color:#B45309;letter-spacing:0.07em;margin-bottom:5px;">LISTENING…</div>
+      <button id="skipPreviewBtn" class="ctrl-btn" style="width:100%;background:linear-gradient(135deg,#fff8dc,#fef3c7)!important;color:#92400e!important;border-color:#fbbf24!important;font-weight:700!important;font-size:12px!important;" onclick="window._skipPreview()">⏩ Skip to My Turn</button>
     </div>
   </div>
 
@@ -337,7 +308,7 @@ window.SONG_CONFIG = {
           font-size:15px;
           font-weight:700;
           font-family:inherit;
-          border:1px solid rgba(229,115,115,0.25);
+          border:1px solid rgba(255,193,7,0.25);
           border-radius:8px;
           padding:4px 6px;
           background:rgba(255,255,255,0.9);
@@ -390,7 +361,7 @@ window.SONG_CONFIG = {
     <div class="ctrl-card-title" style="display:flex;align-items:center;justify-content:space-between;">
       <span>STATS</span>
       <label title="Show/hide stats" style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:10px;font-weight:600;color:#aaa;letter-spacing:0.04em;">
-        <input type="checkbox" id="scoreStatsToggle" checked style="width:13px;height:13px;accent-color:#E57373;cursor:pointer;">
+        <input type="checkbox" id="scoreStatsToggle" checked style="width:13px;height:13px;accent-color:#FFC107;cursor:pointer;">
         all
       </label>
     </div>
