@@ -222,6 +222,13 @@ function logicalToPhysicalSecond(logical) {
 }
 
 function buildPhysicalPracticeMeasureSequence(startLogical, endLogical, skipRepeats) {
+  // Songs can override the sequencing strategy (e.g. block repeats vs per-measure repeats).
+  if (typeof SONG_CONFIG.buildPhysicalPracticeMeasureSequence === 'function') {
+    return SONG_CONFIG.buildPhysicalPracticeMeasureSequence(
+      startLogical, endLogical, skipRepeats,
+      { logicalToPhysicalFirst, logicalToPhysicalSecond, MAX_LOGICAL_MEASURE, SONG_CONFIG }
+    );
+  }
   if (startLogical > endLogical) return null;
   const seq = [];
   const logicalSeq = [];
