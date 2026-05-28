@@ -4967,17 +4967,24 @@ function _buildSvgMidiMap() {
                 (!isRepeatPassNote || isPermanentlyEmpty) &&
                 (!alreadyFired || isPermanentlyEmpty) &&
                 (isPermanentlyEmpty ? emptyBucketShouldOverflow : (used >= cap && used < 2 * cap));
+            let didOverflow = false;
             if (shouldOverflow) {
                 const nextCap = bucketCapacity[`${sheetMeasure + 1}|${clef}`] ?? 0;
                 if (nextCap > 0) {
                     console.log(`📐 Overflow [${clef}] midi=${note.midi} time=${note.time.toFixed(4)} → sheetMeasure ${sheetMeasure}→${sheetMeasure + 1} (bucket full: ${used}/${cap})`);
                     if (!isPermanentlyEmpty) overflowFired.add(overflowKey); // only guard non-empty barline-straddle
                     sheetMeasure = sheetMeasure + 1;
+                    didOverflow = true;
                 }
             }
             // Always increment assignedCount so second-pass detection works correctly.
+            // Exception: barline-straddle overflow notes share rank=0 and must NOT
+            // increment the target bucket's assignedCount — otherwise the genuine
+            // first note of that bucket would see used >= cap and trigger another overflow.
             const newCapKey = `${sheetMeasure}|${clef}`;
-            assignedCount[newCapKey] = (assignedCount[newCapKey] ?? 0) + 1;
+            if (!didOverflow || isPermanentlyEmpty) {
+                assignedCount[newCapKey] = (assignedCount[newCapKey] ?? 0) + 1;
+            }
 
             const bucketKey = `${sheetMeasure}|${clef}`;
             if (rankCounters[bucketKey] === undefined) rankCounters[bucketKey] = 0;
@@ -4988,7 +4995,20 @@ function _buildSvgMidiMap() {
             // pass) resolve to rank 0, 1, 2, … again — i.e. they highlight the same
             // SVG noteheads as the first pass.  For measures that are never repeated
             // the bucket size is never exceeded so % has no effect.
-            const rawRank    = rankCounters[bucketKey]++;
+            //
+            // Barline-straddle overflow notes: these notes landed in the previous measure
+            // by MIDI time but belong visually at rank=0 of the next measure. They share
+            // rank=0 with the genuine first note of that measure — do NOT increment the
+            // rank counter so the genuine first note also gets rank=0. Both notes will
+            // highlight the same SVG notehead (rank=0), which is correct.
+            let rawRank;
+            if (didOverflow && !isPermanentlyEmpty) {
+                // Peek at rank=0 without consuming — the genuine first note of this
+                // bucket will also get rank=0 when it arrives.
+                rawRank = rankCounters[bucketKey]; // don't increment
+            } else {
+                rawRank = rankCounters[bucketKey]++;
+            }
             // For measure 36 bass the noteheads live in _svgBucketsPage2 (page-1 bucket is empty).
             // Fall back to page2 so the % wrap uses the correct size (6), not 0.
             const bucketSize = ((_svgBuckets[sheetMeasure]?.[clef] || []).length)
