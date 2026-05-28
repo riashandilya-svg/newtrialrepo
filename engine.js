@@ -138,7 +138,15 @@ async function loadSongMidi() {
         ? currentMidi.header.tempos[0].bpm
         : 120;
 
-    secondsPerBeat = 60 / bpm;
+    // For 2/2 cut time (timeSignature[1] === 2), MuseScore encodes the MIDI at the
+    // quarter-note BPM, but each score beat is a half note (= 2 quarter notes).
+    // Multiply secondsPerBeat by 2 so that MIDI measure boundaries align with the
+    // visual barlines in the SVG.
+    if (SONG_CONFIG.timeSignature[1] === 2) {
+        secondsPerBeat = (60 / bpm) * 2;
+    } else {
+        secondsPerBeat = 60 / bpm;
+    }
     secondsPerMeasure = secondsPerBeat * SONG_CONFIG.timeSignature[0];
     MEASURE_TIME_MAP = buildMeasureTimeMap(SONG_CONFIG, secondsPerBeat);
 
