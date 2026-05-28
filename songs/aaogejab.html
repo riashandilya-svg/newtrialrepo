@@ -8,11 +8,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../engine.css">
-<!-- ✏️ Per-song color override — aaogejab uses blue accent -->
+<!-- ✏️ Per-song colour override — aaogejab blue scheme -->
 <style>
   :root {
-    --accent-primary:   #3B82F6;
-    --accent-primary-hover: #2563EB;
+    --accent-primary: #3B82F6;
     --blue1: rgba(59, 130, 246, 0.22);
     --blue2: rgba(147, 197, 253, 0.16);
     --border-soft: rgba(59, 130, 246, 0.18);
@@ -21,28 +20,26 @@
   /* Blue radial gradient background — unique to aaogejab */
   body {
     background:
-      radial-gradient(900px 520px at 20% 0%,   var(--blue1),  transparent 60%),
-      radial-gradient(900px 520px at 85% 10%,  rgba(255,255,255,0.10), transparent 62%),
-      radial-gradient(780px 480px at 50% 80%,  var(--blue2),  transparent 60%),
-      radial-gradient(520px 320px at 35% 55%,  rgba(59,130,246,0.10), transparent 60%),
+      radial-gradient(900px 520px at 20% 0%,  rgba(59,130,246,0.22), transparent 60%),
+      radial-gradient(900px 520px at 85% 10%, rgba(255,255,255,0.10), transparent 62%),
+      radial-gradient(780px 480px at 50% 80%, rgba(147,197,253,0.16), transparent 60%),
+      radial-gradient(520px 320px at 35% 55%, rgba(59,130,246,0.10),  transparent 60%),
       #ffffff;
   }
 
-  /* Blue tint on paywall card border */
-  #paywall {
-    border-color: rgba(59, 130, 246, 0.22);
-  }
+  /* Blue tint paywall border */
+  #paywall { border-color: rgba(59,130,246,0.22); }
 
-  /* BPM input border matches blue */
-  #bpmInput {
-    border-color: rgba(59, 130, 246, 0.25) !important;
-  }
+  /* Blue BPM input border */
+  #bpmInput { border-color: rgba(59,130,246,0.25) !important; }
 
-  /* stats toggle accent */
+  /* Blue accent on stats toggles */
   #notesStatsToggle,
-  #scoreStatsToggle {
-    accent-color: #3B82F6 !important;
-  }
+  #scoreStatsToggle { accent-color: #3B82F6 !important; }
+
+  /* Blue correct note circle */
+  .note-circle.correct,
+  .panel-note-circle.correct { background: #3B82F6 !important; }
 </style>
 </head>
 <body>
@@ -58,16 +55,16 @@ window.SONG_CONFIG = {
   svgPages:  3,
   timeSignature: [4, 4],
   measures:      71,
-  repeats:       [],   // MIDI is pre-expanded — bars 7–14 already duplicated in timeline
+  repeats:       [],   // MIDI is pre-expanded — bars 7–14 repeat already baked in
   pickupBeats:   0,
   sections: [
-    { label: "Intro",                     start: 1,  end: 6  },
-    { label: "Aaoge jab tum — saajana",   start: 7,  end: 14 },
-    { label: "Repeat — saajana",          start: 15, end: 21 },
-    { label: "Antara I — Neel gagan",     start: 22, end: 35 },
-    { label: "Mukhda reprise",            start: 36, end: 50 },
-    { label: "Antara II — Tum jo kahen",  start: 51, end: 64 },
-    { label: "Coda / ending",             start: 65, end: 71 },
+    { label: "Intro",                    start: 1,  end: 6  },
+    { label: "Aaoge jab tum — saajana", start: 7,  end: 14 },
+    { label: "Repeat — saajana",         start: 15, end: 21 },
+    { label: "Antara I — Neel gagan",    start: 22, end: 35 },
+    { label: "Mukhda reprise",           start: 36, end: 50 },
+    { label: "Antara II — Tum jo kahen", start: 51, end: 64 },
+    { label: "Coda / ending",            start: 65, end: 71 },
   ],
   brandUrl:     "https://riashandilya-svg.github.io/classicbollywoodmelodies/index.html",
   brandName:    "Ria Om Shandilya",
@@ -177,7 +174,6 @@ window.SONG_CONFIG = {
         <div id="scoreHighlight" style="display:none;"></div>
     </div>
 
-    <!-- FIX 1: Page nav kept in DOM so JS doesn't crash, but hidden via CSS above -->
     <div id="scorePageNav">
         <button id="scorePrevBtn" disabled>‹ Prev</button>
         <span id="scorePageLabel">Page 1 / 3</span>
@@ -255,65 +251,74 @@ window.SONG_CONFIG = {
         <div id="correctNoteCircle" class="note-circle correct"></div>
     </div>
 </div>
-
-<!-- 🟦 Free Mode button — fixed above side note circles -->
-<button id="freeModeButton" class="side-floating">Free<br>Mode</button>
-
-<!-- ====== CONTROL PANEL ====== -->
+<!-- ====== PRACTICE / PLAYBACK / UTILITY PANEL ====== -->
 <div id="controlPanel">
 
-  <!-- SECTION card -->
-  <div class="ctrl-card" id="panelSectionCard">
-    <div class="ctrl-card-title">SECTION</div>
-    <div id="panelSectionButtons"></div>
+  <!-- PRACTICE card -->
+  <div class="ctrl-card" id="panelPracticeCard">
+    <div class="ctrl-card-title">PRACTICE</div>
+    <div class="ctrl-row">
+      <button class="ctrl-btn" id="handLeftBtn" onclick="document.getElementById('handSelect').value='bass'; syncHandBtns()">✋ Left</button>
+      <button class="ctrl-btn active" id="handBothBtn" onclick="document.getElementById('handSelect').value='both'; syncHandBtns()">🎹 Both</button>
+      <button class="ctrl-btn" id="handRightBtn" onclick="document.getElementById('handSelect').value='treble'; syncHandBtns()">✋ Right</button>
+    </div>
+    <div class="ctrl-row" style="gap:10px; align-items:center; justify-content:center;">
+      <label style="display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;color:#666;font-weight:600;">
+        Start Measure
+        <input id="panelStartMeasure" type="number" min="1" style="width:64px;padding:7px;border-radius:9px;border:1px solid #ececec;background:#fafafa;font-size:14px;text-align:center;"
+          oninput="document.getElementById('startMeasureInput').value=this.value"
+          value="1">
+      </label>
+      <label style="display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;color:#666;font-weight:600;">
+        End Measure
+        <input id="panelEndMeasure" type="number" min="1" style="width:64px;padding:7px;border-radius:9px;border:1px solid #ececec;background:#fafafa;font-size:14px;text-align:center;"
+          oninput="document.getElementById('endMeasureInput').value=this.value"
+          value="4">
+      </label>
+    </div>
+    <!-- Song section shortcuts -->
+    <div style="margin-top:6px;">
+      <select id="sectionShortcut"
+        style="width:100%;padding:7px 10px;border-radius:9px;border:1px solid #ececec;background:#fafafa;font-size:12px;color:#555;font-weight:600;cursor:pointer;outline:none;appearance:none;-webkit-appearance:none;background-image:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%228%22 viewBox=%220 0 12 8%22><path d=%22M1 1l5 5 5-5%22 stroke=%22%23aaa%22 stroke-width=%221.5%22 fill=%22none%22 stroke-linecap=%22round%22/></svg>');background-repeat:no-repeat;background-position:right 10px center;"
+        onchange="(function(sel){
+          const val = sel.value;
+          if (!val) return;
+          const [s, e] = val.split('-').map(Number);
+          document.getElementById('panelStartMeasure').value = s;
+          document.getElementById('panelEndMeasure').value   = e;
+          document.getElementById('startMeasureInput').value = s;
+          document.getElementById('endMeasureInput').value   = e;
+          sel.value = '';
+        })(this)">
+        <option value="">🎵 Jump to section…</option>
+        <!-- options injected by engine from SONG_CONFIG.sections -->
+      </select>
+    </div>
+    <button class="ctrl-btn-primary" onclick="document.getElementById('startPracticeButton').click()">▶ Start Practice</button>
+    <button class="ctrl-btn" style="width:100%;margin-top:8px;background:#fffde7!important;color:#B45309!important;border-color:#fde68a!important;" onclick="document.getElementById('stopButton').click()">■ Stop</button>
+    <div id="skipPreviewBox" style="display:none;margin-top:8px;background:rgba(59,130,246,0.08);border:1.5px dashed rgba(59,130,246,0.4);border-radius:12px;padding:8px 10px;text-align:center;">
+      <div style="font-size:11px;font-weight:700;color:#1D4ED8;letter-spacing:0.07em;margin-bottom:5px;">LISTENING…</div>
+      <button id="skipPreviewBtn" class="ctrl-btn" style="width:100%;background:linear-gradient(135deg,#eff6ff,#dbeafe)!important;color:#1D4ED8!important;border-color:#93c5fd!important;font-weight:700!important;font-size:12px!important;" onclick="window._skipPreview()">⏩ Skip to My Turn</button>
+    </div>
   </div>
 
   <!-- PLAYBACK card -->
   <div class="ctrl-card" id="panelPlaybackCard">
     <div class="ctrl-card-title">PLAYBACK</div>
-
-    <!-- Hand selector -->
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-      <span style="font-size:13px;color:#666;white-space:nowrap;">Hand</span>
-      <select id="panelHandSelect" style="flex:1;font-size:13px;border-radius:8px;border:1px solid rgba(59,130,246,0.22);padding:4px 8px;background:rgba(255,255,255,0.9);color:var(--text-main);outline:none;">
-        <option value="treble">Right (Treble)</option>
-        <option value="bass">Left (Bass)</option>
-        <option value="both">Both Hands</option>
-      </select>
+    <div class="ctrl-row">
+      <button class="ctrl-btn" onclick="document.getElementById('playSongButton').click()">▶ Play</button>
+      <button class="ctrl-btn" id="beatBtn" onclick="window._panelBeatClick(this)">♩ Beat</button>
+      <button class="ctrl-btn" id="countBtn" onclick="window._panelCountClick(this)">Counting</button>
     </div>
-
-    <!-- Measure range -->
-    <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
-      <span style="font-size:13px;color:#666;white-space:nowrap;">Measures</span>
-      <input id="panelStartMeasure" type="number" min="1" value="1"
-        style="width:52px;text-align:center;font-size:14px;font-weight:700;font-family:inherit;border:1px solid rgba(59,130,246,0.22);border-radius:8px;padding:4px 6px;background:rgba(255,255,255,0.9);color:var(--text-main);outline:none;">
-      <span style="color:#999;">–</span>
-      <input id="panelEndMeasure" type="number" min="1" value="4"
-        style="width:52px;text-align:center;font-size:14px;font-weight:700;font-family:inherit;border:1px solid rgba(59,130,246,0.22);border-radius:8px;padding:4px 6px;background:rgba(255,255,255,0.9);color:var(--text-main);outline:none;">
+    <div class="ctrl-row">
+      <button class="ctrl-btn" id="subdivBtn" onclick="window._panelSubdivClick(this)">1 &amp; 2 &amp;</button>
     </div>
-
-    <!-- Play / Song / Stop -->
-    <div class="ctrl-grid-3" style="margin-bottom:8px;">
-      <button class="ctrl-btn" id="panelStartPractice" style="background:var(--accent-primary);color:#fff;">▶ Practice</button>
-      <button class="ctrl-btn" id="panelPlaySong"      style="background:var(--accent-primary);color:#fff;">♫ Full Song</button>
-      <button class="ctrl-btn" id="panelStop"          style="background:#EF4444;color:#fff;">■ Stop</button>
-    </div>
-
-    <!-- Metronome row -->
-    <div class="ctrl-grid-3" style="margin-bottom:8px;">
-      <button class="ctrl-btn" id="panelBeatToggle">Beat</button>
-      <button class="ctrl-btn" id="panelCountToggle">Counting</button>
-      <button class="ctrl-btn" id="panelSubdivToggle">1 &amp; 2 &amp;</button>
-    </div>
-
-    <!-- Speed row -->
     <div class="ctrl-speed-row">
-      <button class="ctrl-btn" id="panelSpeedDown" style="flex:0;padding:6px 12px !important;">–</button>
-      <span id="panelSpeedDisplay" style="font-size:16px;font-weight:700;min-width:50px;text-align:center;">1.0×</span>
-      <button class="ctrl-btn" id="panelSpeedUp"   style="flex:0;padding:6px 12px !important;">+</button>
+      <button id="panelSpeedDown" class="ctrl-btn" style="flex:0;padding:10px 14px !important;" onclick="document.getElementById('speedDown').click()">–</button>
+      <span style="font-size:13px;color:#666;">Speed</span>
+      <span class="ctrl-speed-val" id="panelSpeedDisplay">1.0×</span>
+      <button id="panelSpeedUp" class="ctrl-btn" style="flex:0;padding:10px 14px !important;" onclick="document.getElementById('speedUp').click()">+</button>
     </div>
-
-    <!-- BPM row -->
     <div class="ctrl-speed-row" style="margin-top:6px;">
       <span style="font-size:13px;color:#666;white-space:nowrap;">BPM</span>
       <input
@@ -370,7 +375,7 @@ window.SONG_CONFIG = {
     </div>
   </div>
 
-  <!-- FEEDBACK card — fills gap under Playback + Utility via grid placement -->
+  <!-- FEEDBACK card -->
   <div class="ctrl-card" id="panelFeedbackCard">
     <div id="panelFeedbackBubble"></div>
   </div>
@@ -406,7 +411,6 @@ window.SONG_CONFIG = {
         <span class="ctrl-stat-label">BPM</span>
       </div>
     </div>
-    <!-- Progress bar — only visible in score mode -->
     <div id="panelProgressWrap">
       <div id="panelProgressBar">
         <div id="panelProgressFill"></div>
@@ -415,7 +419,7 @@ window.SONG_CONFIG = {
     </div>
   </div>
 
-  <!-- NOTE CIRCLES card — score mode only -->
+  <!-- NOTE CIRCLES card -->
   <div class="ctrl-card" id="panelNoteCirclesCard">
     <div class="ctrl-card-title">NOTES</div>
     <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
@@ -430,7 +434,6 @@ window.SONG_CONFIG = {
     </div>
   </div>
 
-
 </div>
 <!-- ====== END PANEL ====== -->
 
@@ -444,40 +447,33 @@ window.SONG_CONFIG = {
                 <option value="both">Both Hands</option>
             </select>
         </label>
-    
         <label>
             Start Measure:
             <input id="startMeasureInput" type="number" min="1" value="1" style="width:60px;">
         </label>
-        
         <label>
             End Measure:
             <input id="endMeasureInput" type="number" min="1" value="4" style="width:60px;">
         </label>
-        
-    
         <button id="startPracticeButton">Start Practice</button>
     </div>
     <button id="stopButton">Stop</button>
+    <button id="freeModeButton">Free Mode</button>
     <button id="resetButton">Reset</button>
     <button id="toggleNamesButton">Hide Note Names</button>
-<button id="playSongButton">Play Full Song</button>
-<button id="beatToggle">Beat</button>
-<button id="countToggle">Counting</button>
-<button id="subdivisionToggle">1 & 2 &</button>
-<button id="languageToggle">EN</button>
-    
-<label style="display:flex;align-items:center;gap:6px;font-size:16px;">
-    <input type="checkbox" id="skipRepeatsCheckbox">
-    Skip repeats in sheet
-</label>
-
-<label style="display:flex;align-items:center;gap:6px;font-size:16px;">
-    <input type="checkbox" id="loopCheckbox">
-    Loop section
-</label>
-
-
+    <button id="playSongButton">Play Full Song</button>
+    <button id="beatToggle">Beat</button>
+    <button id="countToggle">Counting</button>
+    <button id="subdivisionToggle">1 & 2 &</button>
+    <button id="languageToggle">EN</button>
+    <label style="display:flex;align-items:center;gap:6px;font-size:16px;">
+        <input type="checkbox" id="skipRepeatsCheckbox">
+        Skip repeats in sheet
+    </label>
+    <label style="display:flex;align-items:center;gap:6px;font-size:16px;">
+        <input type="checkbox" id="loopCheckbox">
+        Loop section
+    </label>
     <button id="speedDown">–</button>
     <span id="speedDisplay" style="font-size:18px;min-width:60px;text-align:center;">1.0×</span>
     <button id="speedUp">+</button>
