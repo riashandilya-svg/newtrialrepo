@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./engine.css">
+<link rel="stylesheet" href="../engine.css">
 
 <!-- ✏️ Optional: override accent color for this song -->
 <!--
@@ -34,8 +34,8 @@ window.SONG_CONFIG = {
   productId: "song:jaanekahan",
 
   // ── Files ──────────────────────────────────────────────────────
-  midiFile: "./midi/jaanekahan.mid",
-  svgBase:  "./svg/jaanekahan",   // engine appends "-1.svg", "-2.svg", etc.
+  midiFile: "../midi/jaanekahan.mid",
+  svgBase:  "../svg/jaanekahan",   // engine appends "-1.svg", "-2.svg", etc.
 
   // ── Structure ──────────────────────────────────────────────────
   timeSignature: [4, 4],
@@ -67,14 +67,14 @@ window.SONG_CONFIG = {
 </script>
 
 <!-- Shared engine -->
-<script src="./config.js"></script>
+<script src="../config.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/tone@14.7.77/build/Tone.js"></script>
-<script type="module" src="./engine.js"></script>
+<script type="module" src="../engine.js"></script>
 
 <!-- Supabase + Paywall (shared) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="./supabaseClient.js"></script>
-<script src="./paywall.js"></script>
+<script src="../supabaseClient.js"></script>
+<script src="../paywall.js"></script>
 
 <!-- Login check + paywall trigger -->
 <script type="module">
