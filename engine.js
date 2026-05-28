@@ -2145,7 +2145,7 @@ function _advanceBeatGroupSubNote() {
         // Do NOT re-highlight them on the score at their old position — that causes
         // stray green highlights on notes that are no longer the "current" chord.
 
-        if (allIndices.length > 0) _applyHighlight(allIndices.map(i => _svgNoteElements[i].el));
+        if (allIndices.length > 0) _applyHighlight(allIndices, colorMap);
     }
 }
 
@@ -2646,7 +2646,7 @@ const visualStart =
                 seen.add(k);
                 allIndices.push(..._svgIndicesForMidiNote(sn, 'both'));
             }
-            if (allIndices.length > 0) _applyHighlight(allIndices.map(i => _svgNoteElements[i].el));
+            if (allIndices.length > 0) _applyHighlight(allIndices);
         }, highlightDelay);
         previewTimeouts.push(th);
     }
@@ -4396,7 +4396,7 @@ addMidiFallingRectangle(
                         seen.add(k);
                         allIndices.push(..._svgIndicesForMidiNote(sn, 'both'));
                     }
-                    if (allIndices.length > 0) _applyHighlight(allIndices.map(i => _svgNoteElements[i].el));
+                    if (allIndices.length > 0) _applyHighlight(allIndices);
                 }, (note.time * 1000) / speedMultiplier);
                 playbackTimeouts.push(ht);
             }
@@ -4796,12 +4796,21 @@ function _buildSvgMidiMap() {
             // The repeat pass occupies physical REPEAT_END+2 .. REPEAT_END+REPEAT_LEN+1 = 15..21.
             const isRepeatPassNote = physMeasure > REPEAT_END + 1 && physMeasure <= REPEAT_END + REPEAT_LEN + 1;
             const overflowKey = `${sheetMeasure}|${clef}`;
-            if (!gracePreCorrected && !isRepeatPassNote && !overflowFired.has(overflowKey) &&
-                    (cap === 0 ? used < 2 : (used >= cap && used < 2 * cap))) {
+            // For permanently-empty buckets (cap===0), ALL notes must be redirected —
+            // not just the first one. overflowFired only blocks re-triggering for
+            // non-empty buckets (barline-straddle case) where only a single note
+            // overflows. When cap===0 the bucket can never hold any note, so every
+            // chord member landing here needs the same redirect.
+            const alreadyFired = overflowFired.has(overflowKey);
+            const isPermanentlyEmpty = cap === 0;
+            const shouldOverflow = !gracePreCorrected && !isRepeatPassNote &&
+                (!alreadyFired || isPermanentlyEmpty) &&
+                (isPermanentlyEmpty ? used < 2 : (used >= cap && used < 2 * cap));
+            if (shouldOverflow) {
                 const nextCap = bucketCapacity[`${sheetMeasure + 1}|${clef}`] ?? 0;
                 if (nextCap > 0) {
                     console.log(`📐 Overflow [${clef}] midi=${note.midi} time=${note.time.toFixed(4)} → sheetMeasure ${sheetMeasure}→${sheetMeasure + 1} (bucket full: ${used}/${cap})`);
-                    overflowFired.add(overflowKey);
+                    if (!isPermanentlyEmpty) overflowFired.add(overflowKey); // only guard non-empty barline-straddle
                     sheetMeasure = sheetMeasure + 1;
                 }
             }
@@ -4926,17 +4935,57 @@ let _currentHighlightEls = [];
 // colorMap: optional Map<index, cssColor> — overrides the default clef-based color for
 // specific indices. Used to paint sustained carry-across notes green while the new
 // sub-slot notes remain purple/gold.
-function _applyHighlight(els) {
+function _applyHighlight(indices, colorMap) {
     // Clear previous highlights
     for (const el of _currentHighlightEls) {
         el.removeAttribute('fill');
         el.removeAttribute('filter');
     }
-    _currentHighlightEls = Array.isArray(els) ? els.filter(Boolean) : (els ? [els] : []);
-    for (const el of _currentHighlightEls) {
-        el.setAttribute('fill', '#E57373');
-        el.setAttribute('filter', 'url(#hlGlow)');
+    // Accept either an array of indices (numbers) or legacy array of elements
+    const idxArray = Array.isArray(indices) ? indices.filter(x => x != null) : (indices != null ? [indices] : []);
+    _currentHighlightEls = idxArray.map(x => (typeof x === 'number' ? _svgNoteElements[x]?.el : x)).filter(Boolean);
+
+    // ── DEBUG: log every highlighted note and flag strays ──────────────────
+    if (idxArray.length > 0) {
+        const expectedMidis = new Set([...currentChordNotes]);
+        const highlightedNotes = idxArray.map(x => {
+            if (typeof x !== 'number') return { idx: '?', midi: null, name: '?', colorKey: 'unknown' };
+            const ne    = _svgNoteElements[x];
+            const color = (colorMap && colorMap.has(x)) ? colorMap.get(x)
+                        : ne?.clef === 'bass' ? '#B45309' : '#9B2C6E';
+            const colorKey = color === '#16a34a' ? 'green' : color === '#9B2C6E' ? 'purple' : color === '#B45309' ? 'gold' : color;
+            // Reverse-lookup MIDI for this SVG index via _midiRankMap
+            let midi = null;
+            for (const [, entry] of _midiRankMap) {
+                const bucket = _svgBuckets[entry.sheet_measure]?.[entry.clef];
+                if (bucket && bucket[entry.rank] === x) { midi = entry.midi; break; }
+            }
+            // Any highlighted note (purple, gold, OR green) not in currentChordNotes is a stray
+            const stray = midi !== null && !expectedMidis.has(midi);
+            return { idx: x, midi, name: midi ? getNoteName(midi) : '?', colorKey, stray };
+        });
+        const strays = highlightedNotes.filter(n => n.stray);
+        const label  = strays.length > 0 ? '🚨 _applyHighlight STRAY' : '🎨 _applyHighlight';
+        console.log(
+            label,
+            '| highlighted:', highlightedNotes.map(n => `${n.name}(${n.colorKey})`).join(', '),
+            '| expected (currentChordNotes):', [...currentChordNotes].map(getNoteName).join(', ') || '(none)',
+            strays.length > 0 ? `| STRAYS: ${strays.map(n => `${n.name}(${n.colorKey})`).join(', ')}` : ''
+        );
+        if (strays.length > 0) console.trace('_applyHighlight stray — call stack:');
     }
+    // ── END DEBUG ───────────────────────────────────────────────────────────
+
+    idxArray.forEach(x => {
+        const el   = typeof x === 'number' ? _svgNoteElements[x]?.el : x;
+        const clef = typeof x === 'number' ? _svgNoteElements[x]?.clef : null;
+        if (!el) return;
+        // colorMap override → clef default (treble: purple-maroon, bass: gold)
+        const color = (colorMap && colorMap.has(x)) ? colorMap.get(x)
+                    : clef === 'bass' ? '#B45309' : '#9B2C6E';
+        el.setAttribute('fill', color);
+        el.setAttribute('filter', 'url(#hlGlow)');
+    });
     scrollToHighlight();
 }
 
@@ -5052,7 +5101,7 @@ function onTrainingNoteSpawned(noteObj) {
     }
 
     if (allIndices.length > 0) {
-        _applyHighlight(allIndices.map(i => _svgNoteElements[i].el));
+        _applyHighlight(allIndices);
     } else {
         console.warn(`onTrainingNoteSpawned: no SVG match for ${noteName} t=${noteObj.time.toFixed(3)}`);
     }
@@ -5154,7 +5203,7 @@ scoreModeToggle.addEventListener('change', async () => {
             showScoreNoteDisplay(currentTrainingNote);
             if (noteObj) {
                 const indices = _svgIndicesForMidiNote(noteObj, clefMode);
-                if (indices.length > 0) _applyHighlight(indices.map(i => _svgNoteElements[i].el));
+                if (indices.length > 0) _applyHighlight(indices);
             }
         }
     } else {
