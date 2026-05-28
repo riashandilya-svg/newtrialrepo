@@ -654,6 +654,64 @@ subdivisionToggle.addEventListener('click', () => {
 
 
 // ── Panel button helpers (exposed to window so inline onclick can reach module scope) ──
+
+// Sync hand-select dropdown → Left/Both/Right button active states
+window.syncHandBtns = function() {
+    const val = document.getElementById('handSelect').value;
+    document.getElementById('handLeftBtn') ?.classList.toggle('active', val === 'bass');
+    document.getElementById('handBothBtn') ?.classList.toggle('active', val === 'both');
+    document.getElementById('handRightBtn')?.classList.toggle('active', val === 'treble');
+};
+document.getElementById('handSelect').addEventListener('change', window.syncHandBtns);
+window.syncHandBtns(); // set initial state
+
+// Mirror pressed/correct note circles into the score-mode panel card
+window.syncPanelNoteCircles = function() {
+    const src = document.getElementById('pressedNoteCircle');
+    const dst = document.getElementById('panelPressedCircle');
+    if (src && dst) {
+        dst.textContent = src.textContent;
+        dst.className   = src.className.replace('note-circle', 'panel-note-circle');
+    }
+    const srcC = document.getElementById('correctNoteCircle');
+    const dstC = document.getElementById('panelCorrectCircle');
+    if (srcC && dstC) dstC.textContent = srcC.textContent;
+};
+(function() {
+    const obs = new MutationObserver(window.syncPanelNoteCircles);
+    const cfg = { childList: true, characterData: true, subtree: true, attributes: true };
+    const p = document.getElementById('pressedNoteCircle');
+    const c = document.getElementById('correctNoteCircle');
+    if (p) obs.observe(p, cfg);
+    if (c) obs.observe(c, cfg);
+})();
+
+// Mirror speed display into panel
+(function() {
+    const src = document.getElementById('speedDisplay');
+    const dst = document.getElementById('panelSpeedDisplay');
+    if (!src || !dst) return;
+    const obs = new MutationObserver(() => { dst.textContent = src.textContent; });
+    obs.observe(src, { childList: true, characterData: true, subtree: true });
+    dst.textContent = src.textContent;
+})();
+
+// Mirror #feedback into #panelFeedbackBubble (score mode)
+(function() {
+    const src = document.getElementById('feedback');
+    const dst = document.getElementById('panelFeedbackBubble');
+    if (!src || !dst) return;
+    function syncFeedback() {
+        dst.innerHTML = src.innerHTML;
+        dst.className = src.className.replace('show', '').trim();
+        requestAnimationFrame(() => {
+            if (src.classList.contains('show')) dst.classList.add('show');
+        });
+    }
+    const obs = new MutationObserver(syncFeedback);
+    obs.observe(src, { childList: true, characterData: true, subtree: true, attributes: true, attributeFilter: ['class'] });
+})();
+
 window._panelBeatClick = function(btn) {
     beatToggle.click();   // toggles beatEnabled inside module scope
     btn.classList.toggle('active', beatEnabled);
@@ -4180,7 +4238,7 @@ function resetAll() {
 
     // ── 9. Reset hand-select buttons ─────────────────────────────────────
     handSelect.value = 'both';
-    syncHandBtns();
+    window.syncHandBtns();
 
     // ── 10. Deactivate Beat / Counting / Subdivision panel buttons ───────
     document.getElementById('beatBtn')   ?.classList.remove('active');
