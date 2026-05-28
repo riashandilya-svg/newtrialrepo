@@ -51,6 +51,30 @@ window.SONG_CONFIG = {
   repeatEnd:   36,
   repeatLen:   8,
 
+  // Maps physical MIDI measures → logical sheet measures
+  buildPhysicalToLogical: function(map) {
+    const RS = 29, RL = 8;
+    for (let p = 1; p <= 81; p++) {
+      let logical;
+      if      (p <= 28)        logical = p;
+      else if (p <= 36)        logical = p;           // first pass
+      else if (p <= 36 + RL)   logical = RS + (p-37); // repeat pass → same sheet measure
+      else                     logical = p - RL;       // after repeat
+      map[p] = logical;
+    }
+    return map;
+  },
+
+  // Which physical measure to use for the FIRST occurrence of a logical measure
+  logicalToPhysicalFirst: function(l) {
+    return l <= 36 ? l : l + 8;
+  },
+
+  // Which physical measure to use for the SECOND occurrence (null if none)
+  logicalToPhysicalSecond: function(l) {
+    return (l >= 29 && l <= 36) ? l + 8 : null;
+  },
+
   svgPageSystems: [
     // PAGE 1
     [
