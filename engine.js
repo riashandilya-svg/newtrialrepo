@@ -50,11 +50,18 @@ if (!window.SONG_CONFIG) throw new Error("[engine] window.SONG_CONFIG is not def
 const SONG_CONFIG = window.SONG_CONFIG;
 
 // ============================================================
-// THEME — derived from SONG_CONFIG.accentPrimary (a CSS hex color, e.g. "#3B82F6")
-// Songs set one accent hex; the engine derives every canvas/SVG color from it.
-// Falls back to the exact original purple/gold defaults when no accent is supplied.
+// THEME — driven by SONG_CONFIG.
+// Three tiers, checked in order:
+//   1. SONG_CONFIG.themeOverride — full hand-crafted object, used as-is
+//   2. SONG_CONFIG.accentPrimary — one hex drives derivation of all slots
+//   3. No config — exact original purple/gold defaults
 // ============================================================
 (function buildTheme() {
+  // Tier 1: full override supplied by song
+  if (SONG_CONFIG.themeOverride) {
+    window.ENGINE_THEME = SONG_CONFIG.themeOverride;
+    return;
+  }
   function hexToRgb(hex) {
     hex = hex.replace('#', '');
     if (hex.length === 3) hex = hex.split('').map(c => c+c).join('');
