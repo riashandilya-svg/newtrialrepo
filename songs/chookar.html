@@ -139,15 +139,15 @@
     border-color: rgba(59,130,246,0.1) !important;
   }
   .panel-note-circle.correct {
-    background: #FFC107 !important;
+    background: #3B82F6 !important;
   }
   body.dark-mode .panel-note-item {
     border-color: rgba(96,165,250,0.15) !important;
   }
 
-  /* ── Note circles (side feedback) — correct = yellow ── */
+  /* ── Note circles (side feedback) — correct = blue (ekladki-matched) ── */
   .note-circle.correct {
-    background: #FFC107 !important;
+    background: #3B82F6 !important;
   }
 
   /* ── Measure pip progress ── */
@@ -248,9 +248,6 @@ window.SONG_CONFIG = {
   measures:      47,   // physical MIDI measure count (includes both passes of the repeat)
   repeats:       [],
   pickupBeats:   0,
-  jsaccentPrimary: "#3B82F6",
-  accentBass:     "#F59E0B",
-
 
   // ── Repeat: physical measures 27-32 play twice in the MIDI.
   //    The SVG/sheet shows them once (logical 27-32).
@@ -340,6 +337,61 @@ window.SONG_CONFIG = {
   brandName:    "Ria Om Shandilya",
   youtubeUrl:   "https://www.youtube.com/watch?v=FaJh5yr51iw",
   youtubeLabel: "Quick Guide to Measures & Sheet",
+
+  // ── Theme: ekladki-matched colors ──────────────────────────────────────────
+  // SVG notehead highlights, falling note gradients, and piano key colors
+  // are taken directly from Ek Ladki Bheegi Bhaagi Si for visual consistency.
+  themeOverride: {
+    // SVG notehead highlight colors
+    trebleNote:        '#3B82F6',
+    bassNote:          '#EAB308',
+
+    // Falling note gradients — treble (blue)
+    trebleFallTop:     'rgba(191,219,254,0.92)',
+    trebleFallMid1:    'rgba(147,197,253,0.88)',
+    trebleFallMid2:    'rgba(59,130,246,0.90)',
+    trebleFallBot:     'rgba(29,78,216,0.94)',
+    trebleFallShadow:  'rgba(96,165,250,0.55)',
+
+    // Falling note gradients — bass (gold)
+    bassFallTop:       'rgba(255,251,150,0.92)',
+    bassFallMid1:      'rgba(255,236,50,0.88)',
+    bassFallMid2:      'rgba(250,204,21,0.90)',
+    bassFallBot:       'rgba(202,138,4,0.94)',
+    bassFallShadow:    'rgba(245,158,11,0.4)',
+
+    // Piano white key fills
+    whiteKeyTrebleTop: '#BFDBFE',
+    whiteKeyTrebleBot: '#93C5FD',
+    whiteKeyBassTop:   '#FEF9C3',
+    whiteKeyBassBot:   '#FDE047',
+
+    // Piano black key fills
+    blackKeyTrebleTop: '#93C5FD',
+    blackKeyTrebleBot: '#1D4ED8',
+    blackKeyBassTop:   '#FEF9C3',
+    blackKeyBassBot:   '#CA8A04',
+
+    // Piano key glow overlays — treble
+    keyTrebleGlowShadow: '#60a5fa',
+    keyTrebleGlowFillW:  'rgba(96,165,250,0.15)',
+    keyTrebleGlowFillB:  'rgba(96,165,250,0.4)',
+
+    // Piano key glow overlays — bass
+    keyBassGlowShadow:   '#FDE047',
+    keyBassGlowFillW:    'rgba(253,224,71,0.15)',
+
+    // Note name labels on keys and falling notes
+    keyLabelTreble:      '#555',
+    keyLabelBass:        '#78350F',
+    fallingLabelTreble:  'rgba(255,255,255,0.95)',
+    fallingLabelBass:    'rgba(255,255,255,0.95)',
+
+    // BPM input focus ring
+    bpmFocusBorder:  'rgba(59,130,246,0.6)',
+    bpmFocusShadow:  'rgba(59,130,246,0.15)',
+    bpmBlurBorder:   'rgba(59,130,246,0.25)',
+  },
 
   scorePages: 2,
 
@@ -788,30 +840,7 @@ window.SONG_CONFIG = {
 
 <script defer src="https://cdn.jsdelivr.net/npm/tone@14.7.77/build/Tone.js"></script>
 
-<!-- Override SVG highlight colors to match score-mode: use #3B82F6 for all notes
-     instead of engine.js defaults (treble: #9B2C6E purple, bass: #B45309 gold) -->
-<script>
-(function () {
-  const ENGINE_COLORS = new Set([
-    '#9B2C6E', '#9b2c6e',
-    '#B45309', '#b45309',
-    '#FFC107', '#ffc107',
-    '#F59E0B', '#f59e0b',
-    '#FBBF24', '#fbbf24',
-    '#D97706', '#d97706',
-    '#16a34a', '#16A34A'
-  ]);
-  const SCORE_MODE_COLOR = '#3B82F6';
-
-  const _origSetAttr = SVGElement.prototype.setAttribute;
-  SVGElement.prototype.setAttribute = function (name, value) {
-    if (name === 'fill' && ENGINE_COLORS.has(value)) {
-      return _origSetAttr.call(this, name, SCORE_MODE_COLOR);
-    }
-    return _origSetAttr.call(this, name, value);
-  };
-})();
-</script>
+<!-- SVG notehead colors are now driven by SONG_CONFIG.accentPrimary / accentBass via engine THEME -->
 
 <!-- Diagnostic: intercept MutationObserver to catch when page 1 SVG is injected -->
 <script>
