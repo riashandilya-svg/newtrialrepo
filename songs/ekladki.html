@@ -261,10 +261,13 @@ window.SONG_CONFIG = {
   //    Physical 22-39 = post-repeat → logical 15-32
   repeatStart: 7,
   repeatEnd:   13,
-  repeatLen:   7,
-
-  // REPEAT_PHYSICAL_OFFSET = REPEAT_END + 2 - REPEAT_START = 13 + 2 - 7 = 8
-  // (repeat pass starts at physical 15, not 14)
+  // repeatLen = PHYSICAL offset from first-pass start to repeat-pass start = 15 - 7 = 8.
+  // (Physical 14 = 1st ending, so repeat pass begins at physical 15, not 14.)
+  // Engine uses REPEAT_LEN for:
+  //   isRepeatPassNote: physMeasure > 13 && physMeasure <= 13+8 = 21  → physical 14-21 ✓
+  //   isRepeatPass (preview mirror): physMeasure >= 7+8=15 && <= 13+8=21 → physical 15-21 ✓
+  //   firstPassTime = note.time - 8*secondsPerMeasure  → correct 8-measure back-offset ✓
+  repeatLen:   8,
 
   buildPhysicalToLogical(map) {
     for (let p = 1;  p <= 14; p++) map[p] = p;               // first pass + 1st ending
