@@ -4840,15 +4840,15 @@ function _buildSvgMidiMap() {
 
             // Skip tied-continuation MIDI notes: the SVG buckets already exclude their
             // noteheads, so counting them here shifts every subsequent rank by +1.
-            // Exception: treble measure 36's tied whole note is intentionally kept in
-            // _svgBucketsPage2[36][treble] for highlighting, so its MIDI note must also
+            // Exception: treble REPEAT_END's tied whole note is intentionally kept in
+            // _svgBucketsPage2[REPEAT_END][treble] for highlighting, so its MIDI note must also
             // get a rank entry (rank 0) rather than being skipped.
             const isTiedM36Treble = (_tiedNoteKeys.has(mk) || _tiedNoteKeys.has(mkShifted))
                 && clef === 'treble'
                 && (() => {
                     const pm = getMeasureFromTime(note.time);
                     const sm = pm !== null ? (PHYSICAL_TO_LOGICAL[pm] ?? pm) : null;
-                    return sm === 36;
+                    return sm === REPEAT_END;
                 })();
             if (!isTiedM36Treble && (_tiedNoteKeys.has(mk) || _tiedNoteKeys.has(mkShifted))) continue;
 
@@ -4864,28 +4864,31 @@ function _buildSvgMidiMap() {
             // does not fire a second time on the already-corrected sheetMeasure.
             let hardcodedGraceCorrected = false;
 
-            // Measure 36 bass AND treble: _svgBuckets[36][bass|treble] is empty because the
+            // REPEAT_END bass AND treble: _svgBuckets[REPEAT_END][bass|treble] is empty because the
             // page-1 SVG only has a tied whole note (excluded as a tied continuation). The actual
-            // playable noteheads live on page 2 (_svgBucketsPage2[36][bass|treble]).
-            // Suppress the overflow→37 so all m36 notes stay at sheetMeasure=36 and
-            // _svgIndicesForMidiNote can route them to the correct page-2 bucket.
+            // playable noteheads live on page 2 (_svgBucketsPage2[REPEAT_END][bass|treble]).
+            // Suppress the overflow→REPEAT_END+1 so all REPEAT_END notes stay at sheetMeasure=REPEAT_END
+            // and _svgIndicesForMidiNote can route them to the correct page-2 bucket.
             // Only applies to songs with repeats (where this page-layout scenario occurs).
-            if (REPEAT_LEN > 0 && sheetMeasure === 36 && (clef === 'bass' || clef === 'treble')) {
+            if (REPEAT_LEN > 0 && sheetMeasure === REPEAT_END && (clef === 'bass' || clef === 'treble')) {
                 hardcodedGraceCorrected = true;
             }
 
-            // Hardcoded grace corrections for measures 30, 32, 34 (empty treble buckets)
-            // and the repeat-pass grace note for m29 that lands in logical 36.
-            // These are only applicable for songs that have a repeat section (REPEAT_LEN > 0).
+            // Grace corrections for empty-treble measures inside the repeat block,
+            // and the repeat-pass grace note that lands in logical REPEAT_END.
+            // Only applicable for songs that have a repeat section (REPEAT_LEN > 0).
+            // Empty-treble measures are REPEAT_START+1, REPEAT_START+3, REPEAT_START+5
+            // (the alternating bass-only measures in the repeat block).
             if (REPEAT_LEN > 0 && note.duration < 0.1) {
-                if (sheetMeasure === 30 || sheetMeasure === 32 || sheetMeasure === 34) {
+                const rs1 = REPEAT_START + 1, rs3 = REPEAT_START + 3, rs5 = REPEAT_START + 5;
+                if (sheetMeasure === rs1 || sheetMeasure === rs3 || sheetMeasure === rs5) {
                     sheetMeasure += 1;
                     hardcodedGraceCorrected = true;
-                } else if (sheetMeasure === 36 && clef === 'treble') {
-                    // Repeat pass: treble grace note for logical 29 lands in logical 36.
-                    // Always redirect to logical 29.
-                    // NOTE: bass clef intentionally excluded — bass m36 has genuine short notes.
-                    sheetMeasure = 29;
+                } else if (sheetMeasure === REPEAT_END && clef === 'treble') {
+                    // Repeat pass: treble grace note for logical REPEAT_START lands in logical REPEAT_END.
+                    // Always redirect to logical REPEAT_START.
+                    // NOTE: bass clef intentionally excluded — bass REPEAT_END has genuine short notes.
+                    sheetMeasure = REPEAT_START;
                     hardcodedGraceCorrected = true;
                 }
             }
@@ -5022,9 +5025,9 @@ function _buildSvgMidiMap() {
             // in the SVG, so the old rank+1 was skipping rank 0 and pushing the last
             // MIDI note (rawRank=6) to rank 7, which is out of bounds on a 7-note bucket.
 
-            // DEBUG: log all assignments to sheet 35 treble
-            if (sheetMeasure === 35 && clef === 'treble') {
-                console.log(`📊 assignRanks sheet35|treble: mk=${mk} rawRank=${rawRank} bucketSize=${bucketSize} rank=${rank} used_before=${used} cap=${cap} gracePreCorrected=${gracePreCorrected} hardcoded=${hardcodedGraceCorrected}`);
+            // DEBUG: log all assignments to sheet REPEAT_END-1 treble (penultimate repeat measure)
+            if (sheetMeasure === REPEAT_END - 1 && clef === 'treble') {
+                console.log(`📊 assignRanks sheet${REPEAT_END-1}|treble: mk=${mk} rawRank=${rawRank} bucketSize=${bucketSize} rank=${rank} used_before=${used} cap=${cap} gracePreCorrected=${gracePreCorrected} hardcoded=${hardcodedGraceCorrected}`);
             }
 
             // DEBUG: log all assignments to sheet 28 (both clefs)
@@ -5038,8 +5041,9 @@ function _buildSvgMidiMap() {
             //   rank 6: treble G
             //   rank 7: treble A   /  bass B+D
             //   rank 8: treble E
-            if (sheetMeasure === 28) {
-                console.log(`📊 assignRanks m28|${clef}: midi=${note.midi}(${getNoteName(note.midi)}) t=${note.time.toFixed(4)} dur=${note.duration.toFixed(3)} rawRank=${rawRank} rank=${rank} grace=${note.duration < 0.1}`);
+            // DEBUG: log all assignments to the measure two before the repeat block starts
+            if (sheetMeasure === REPEAT_START - 1 && REPEAT_LEN > 0) {
+                console.log(`📊 assignRanks m${REPEAT_START - 1}|${clef}: midi=${note.midi}(${getNoteName(note.midi)}) t=${note.time.toFixed(4)} dur=${note.duration.toFixed(3)} rawRank=${rawRank} rank=${rank} grace=${note.duration < 0.1}`);
             }
 
             _midiRankMap.set(mk, { sheet_measure: sheetMeasure, clef, rank });
