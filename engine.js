@@ -226,9 +226,18 @@ function buildPhysicalPracticeMeasureSequence(startLogical, endLogical, skipRepe
   const seq = [];
   const logicalSeq = [];
   for (let l = startLogical; l <= endLogical; l++) {
-    if (l > SONG_CONFIG.measures) return null;
-    seq.push(l);
+    if (l > MAX_LOGICAL_MEASURE) return null;
+    const p1 = logicalToPhysicalFirst(l);
+    if (p1 > SONG_CONFIG.measures) return null;
+    seq.push(p1);
     logicalSeq.push(l);
+    if (!skipRepeats) {
+      const p2 = logicalToPhysicalSecond(l);
+      if (p2 !== null && p2 <= SONG_CONFIG.measures) {
+        seq.push(p2);
+        logicalSeq.push(l);
+      }
+    }
   }
   return { seq, logicalSeq };
 }
