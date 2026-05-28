@@ -316,6 +316,61 @@ window.SONG_CONFIG = {
   youtubeUrl:   "https://www.youtube.com/watch?v=FaJh5yr51iw",
   youtubeLabel: "Quick Guide to Measures & Sheet",
 
+  // ── Theme: aajkal-matched colors ──────────────────────────────────────────
+  // SVG notehead highlights, falling note gradients, and piano key colors
+  // use the red/pink (treble) + purple/violet (bass) palette.
+  themeOverride: {
+    // SVG notehead highlight colors
+    trebleNote:        '#E57373',
+    bassNote:          '#7C3AED',
+
+    // Falling note gradients — treble (red/pink)
+    trebleFallTop:     'rgba(255,200,200,0.92)',
+    trebleFallMid1:    'rgba(255,150,150,0.88)',
+    trebleFallMid2:    'rgba(229,115,115,0.90)',
+    trebleFallBot:     'rgba(239,83,80,0.94)',
+    trebleFallShadow:  'rgba(229,115,115,0.35)',
+
+    // Falling note gradients — bass (purple/violet)
+    bassFallTop:       'rgba(221,214,254,0.92)',
+    bassFallMid1:      'rgba(196,181,253,0.88)',
+    bassFallMid2:      'rgba(167,139,250,0.90)',
+    bassFallBot:       'rgba(124,58,237,0.94)',
+    bassFallShadow:    'rgba(167,139,250,0.4)',
+
+    // Piano white key fills
+    whiteKeyTrebleTop: '#FFCDD2',
+    whiteKeyTrebleBot: '#EF9A9A',
+    whiteKeyBassTop:   '#DDD6FE',
+    whiteKeyBassBot:   '#A78BFA',
+
+    // Piano black key fills
+    blackKeyTrebleTop: '#EF9A9A',
+    blackKeyTrebleBot: '#E57373',
+    blackKeyBassTop:   '#A78BFA',
+    blackKeyBassBot:   '#7C3AED',
+
+    // Piano key glow overlays — treble
+    keyTrebleGlowShadow: '#ff6b6b',
+    keyTrebleGlowFillW:  'rgba(255,107,107,0.15)',
+    keyTrebleGlowFillB:  'rgba(255,107,107,0.4)',
+
+    // Piano key glow overlays — bass
+    keyBassGlowShadow:   '#7C3AED',
+    keyBassGlowFillW:    'rgba(167,139,250,0.18)',
+
+    // Note name labels on keys and falling notes
+    keyLabelTreble:      '#555',
+    keyLabelBass:        '#4C1D95',
+    fallingLabelTreble:  'rgba(255,255,255,0.95)',
+    fallingLabelBass:    'rgba(255,255,255,0.95)',
+
+    // BPM input focus ring
+    bpmFocusBorder:  'rgba(229,115,115,0.6)',
+    bpmFocusShadow:  'rgba(229,115,115,0.15)',
+    bpmBlurBorder:   'rgba(229,115,115,0.25)',
+  },
+
   scorePages: 3,
   svgPageSystems: [
     // PAGE 1 — 5 systems: m1–8, m9–15, m16–21, m22–26, m27–31
@@ -769,60 +824,6 @@ window.SONG_CONFIG = {
 </div> <!-- closes app -->
 
 <script defer src="https://cdn.jsdelivr.net/npm/tone@14.7.77/build/Tone.js"></script>
-
-<!-- Override canvas falling-note gradients and piano key highlights for aajkal red/purple palette -->
-<script>
-(function () {
-  // Intercept CanvasRenderingContext2D.createLinearGradient to patch note + key colors
-  const _origCreateLG = CanvasRenderingContext2D.prototype.createLinearGradient;
-  const _origAddCS    = CanvasRenderingContext2D.prototype.addColorStop; // just in case
-
-  // We patch by monkey-patching the engine's expected color constants at draw time.
-  // The engine reads window.SONG_COLORS if present; if not, we patch via property overrides.
-  window.SONG_COLORS = {
-    // Falling note gradients
-    treble: [
-      { stop: 0.00, color: 'rgba(255,200,200,0.92)' },
-      { stop: 0.25, color: 'rgba(255,150,150,0.88)' },
-      { stop: 0.65, color: 'rgba(229,115,115,0.90)' },
-      { stop: 1.00, color: 'rgba(239,83,80,0.94)'   },
-    ],
-    bass: [
-      { stop: 0.00, color: 'rgba(221,214,254,0.92)' },
-      { stop: 0.25, color: 'rgba(196,181,253,0.88)' },
-      { stop: 0.65, color: 'rgba(167,139,250,0.90)' },
-      { stop: 1.00, color: 'rgba(124,58,237,0.94)'  },
-    ],
-    // Piano key highlights
-    whiteKeyTreble: {
-      gradStart:  '#FFCDD2',
-      gradEnd:    '#EF9A9A',
-      glowShadow: '#ff6b6b',
-      glowFill:   'rgba(255,107,107,0.15)',
-    },
-    whiteKeyBass: {
-      gradStart:  '#DDD6FE',
-      gradEnd:    '#A78BFA',
-      glowShadow: '#7C3AED',
-      glowFill:   'rgba(167,139,250,0.18)',
-    },
-    blackKeyTreble: {
-      gradStart:  '#EF9A9A',
-      gradEnd:    '#E57373',
-      glowShadow: '#ff6b6b',
-      glowFill:   'rgba(255,107,107,0.4)',
-    },
-    blackKeyBass: {
-      gradStart:  '#A78BFA',
-      gradEnd:    '#7C3AED',
-    },
-    // Note name label colors
-    labelTrebleWhite: '#555',
-    labelBassWhite:   '#4C1D95',
-    labelBlack:       '#fff',
-  };
-})();
-</script>
 
 <!-- Override SVG highlight colors to match score-mode red palette (#E57373) -->
 <script>
