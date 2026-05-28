@@ -23,41 +23,54 @@
 <script src="../config.js"></script>
 <script>
 window.SONG_CONFIG = {
+  // ── Required ────────────────────────────────────────────────
   id:        "aajkal",
   title:     "Aaj Kal Tere Mere Pyaar Ke Charche",
   productId: "song:aajkal",
+
   midiFile:  "../midi/aajkal.mid",
   svgBase:   "../svg/aajkal",
-  timeSignature: [2, 2],
+
+  timeSignature: [2, 2],   // cut time
   measures:      81,
   repeats:       [],
   pickupBeats:   0,
+
+  // ── Sections ────────────────────────────────────────────────
   sections: [
-    { label: "Intro music",               start: 1,  end: 11 },
-    { label: "Aaj kal — toh kya?",        start: 12, end: 28 },
-    { label: "Middle music",              start: 29, end: 36 },
-    { label: "Hamne toh — naam kar lia",  start: 37, end: 57 },
-    { label: "Aaj kal toh kya — reprise", start: 58, end: 73 },
+    { label: "Intro music",                start: 1,  end: 11 },
+    { label: "Aaj kal — toh kya?",         start: 12, end: 28 },
+    { label: "Middle music",               start: 29, end: 36 },
+    { label: "Hamne toh — naam kar lia",   start: 37, end: 57 },
+    { label: "Aaj kal toh kya — reprise",  start: 58, end: 73 },
   ],
-  brandUrl:     "https://riashandilya-svg.github.io/classicbollywoodmelodies/index.html",
-  brandName:    "Ria Om Shandilya",
-  youtubeUrl:   "https://www.youtube.com/watch?v=FaJh5yr51iw",
+
+  // ── Brand bar ───────────────────────────────────────────────
+  brandUrl:  "https://your-site.com/index.html",
+  brandName: "Your Name",
+
+  // ── YouTube button ──────────────────────────────────────────
+  youtubeUrl:   "https://youtube.com/watch?v=VIDEO_ID",
   youtubeLabel: "Quick Guide to Measures & Sheet",
+
+  // ── Repeat map (measures 29–36 repeat) ──────────────────────
   repeatStart: 29,
   repeatEnd:   36,
   repeatLen:   8,
+
   buildPhysicalToLogical: function(map) {
-    const RS = 29, RE = 36, RL = 8;
+    const RS = 29, RL = 8;
     for (let p = 1; p <= 81; p++) {
       let logical;
-      if      (p <= 28)       logical = p;
-      else if (p <= 36)       logical = p;
-      else if (p <= 36 + RL)  logical = RS + (p - 37);
-      else                    logical = p - RL;
+      if      (p <= 28)        logical = p;
+      else if (p <= 36)        logical = p;            // first pass
+      else if (p <= 36 + RL)   logical = RS + (p - 37); // repeat pass
+      else                     logical = p - RL;        // after repeat
       map[p] = logical;
     }
     return map;
   },
+
   logicalToPhysicalFirst:  function(l) { return l <= 36 ? l : l + 8; },
   logicalToPhysicalSecond: function(l) { return (l >= 29 && l <= 36) ? l + 8 : null; },
 };
