@@ -8,38 +8,241 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../engine.css">
-<!-- ✏️ Per-song colour override — aaogejab blue scheme -->
+<!-- ✏️ Per-song color override — aaogejab: amber/yellow treble, blue bass -->
 <style>
   :root {
-    --accent-primary: #3B82F6;
-    --blue1: rgba(59, 130, 246, 0.22);
-    --blue2: rgba(147, 197, 253, 0.16);
-    --border-soft: rgba(59, 130, 246, 0.18);
+    --accent-primary: #F59E0B;
+    --accent-success: #22C55E;
+    --accent-error:   #EF4444;
+
+    --blue1: rgba(245, 158, 11, 0.20);
+    --blue2: rgba(253, 224, 71, 0.16);
+    --softWhite: rgba(255, 255, 255, 0.10);
+
+    --border-soft: rgba(245, 158, 11, 0.18);
   }
 
-  /* Blue radial gradient background — unique to aaogejab */
+  /* ── Ambient glow ── */
+  body::before {
+    background: radial-gradient(circle, #fde68a 0%, transparent 70%) !important;
+    opacity: 0.32 !important;
+  }
+  body::after {
+    background: radial-gradient(circle, #fef3c7 0%, transparent 70%) !important;
+    opacity: 0.22 !important;
+  }
   body {
     background:
-      radial-gradient(900px 520px at 20% 0%,  rgba(59,130,246,0.22), transparent 60%),
+      radial-gradient(900px 520px at 20% 0%,  rgba(245,158,11,0.20), transparent 60%),
       radial-gradient(900px 520px at 85% 10%, rgba(255,255,255,0.10), transparent 62%),
-      radial-gradient(780px 480px at 50% 80%, rgba(147,197,253,0.16), transparent 60%),
-      radial-gradient(520px 320px at 35% 55%, rgba(59,130,246,0.10),  transparent 60%),
-      #ffffff;
+      radial-gradient(780px 480px at 50% 80%, rgba(253,224,71,0.16), transparent 60%),
+      radial-gradient(520px 320px at 35% 55%, rgba(245,158,11,0.10),  transparent 60%),
+      #ffffff !important;
+  }
+  body.dark-mode::before { background: radial-gradient(circle, #d97706 0%, transparent 70%) !important; opacity: 0.18 !important; }
+  body.dark-mode::after  { background: radial-gradient(circle, #fbbf24 0%, transparent 70%) !important; opacity: 0.10 !important; }
+
+  /* ── Brand bar border ── */
+  #brandBar {
+    border-bottom-color: rgba(245,158,11,0.18) !important;
   }
 
-  /* Blue tint paywall border */
-  #paywall { border-color: rgba(59,130,246,0.22); }
+  /* ── Hit line ── */
+  #hitLine {
+    background: linear-gradient(90deg, transparent 2%, #f59e0b 20%, #fbbf24 50%, #f59e0b 80%, transparent 98%) !important;
+    box-shadow: 0 0 12px #f59e0b, 0 0 28px rgba(245,158,11,0.5) !important;
+  }
 
-  /* Blue BPM input border */
-  #bpmInput { border-color: rgba(59,130,246,0.25) !important; }
+  /* ── Game stage ── */
+  #gameStage {
+    background: linear-gradient(180deg, rgba(255,255,255,0.75) 0%, rgba(255,251,235,0.88) 100%) !important;
+    border-color: rgba(245,158,11,0.12) !important;
+  }
+  body.dark-mode #gameStage {
+    background: linear-gradient(180deg, rgba(28,24,16,0.88) 0%, rgba(20,16,8,0.95) 100%) !important;
+    border-color: rgba(251,191,36,0.18) !important;
+  }
 
-  /* Blue accent on stats toggles */
+  /* ── Stats bar ── */
+  #statsBar {
+    border-color: rgba(245,158,11,0.13) !important;
+  }
+  body.dark-mode #statsBar {
+    border-color: rgba(251,191,36,0.18) !important;
+  }
+
+  /* ── Control cards ── */
+  .ctrl-card {
+    border-color: rgba(245,158,11,0.15) !important;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.07), 0 2px 8px rgba(245,158,11,0.06) !important;
+  }
+  .ctrl-card:hover {
+    box-shadow: 0 18px 50px rgba(0,0,0,0.1), 0 4px 12px rgba(245,158,11,0.10) !important;
+  }
+  .ctrl-card-title {
+    color: #D97706 !important;
+  }
+  body.dark-mode .ctrl-card {
+    border-color: rgba(251,191,36,0.25) !important;
+  }
+  body.dark-mode .ctrl-card-title {
+    color: #fbbf24 !important;
+  }
+
+  /* ── Ctrl buttons ── */
+  .ctrl-btn {
+    border-color: rgba(245,158,11,0.1) !important;
+  }
+  .ctrl-btn:hover:not(:disabled) {
+    background: rgba(255,251,235,0.95) !important;
+    color: #D97706 !important;
+    box-shadow: 0 6px 16px rgba(245,158,11,0.18) !important;
+  }
+  .ctrl-btn.active {
+    background: linear-gradient(135deg, rgba(255,251,235,0.95), rgba(254,243,199,0.95)) !important;
+    color: #D97706 !important;
+    border-color: rgba(245,158,11,0.3) !important;
+    box-shadow: 0 4px 12px rgba(245,158,11,0.2) !important;
+  }
+  body.dark-mode .ctrl-btn:hover:not(:disabled) {
+    background: rgba(251,191,36,0.12) !important;
+    color: #fbbf24 !important;
+  }
+
+  /* ── Primary button ── */
+  .ctrl-btn-primary {
+    background: linear-gradient(135deg, #fbbf24, #f59e0b) !important;
+    box-shadow: 0 6px 20px rgba(245,158,11,0.32) !important;
+  }
+  .ctrl-btn-primary:hover:not(:disabled) {
+    box-shadow: 0 10px 28px rgba(245,158,11,0.42) !important;
+  }
+
+  /* ── Speed row ── */
+  .ctrl-speed-row {
+    border-color: rgba(245,158,11,0.1) !important;
+  }
+  body.dark-mode .ctrl-speed-row {
+    border-color: rgba(251,191,36,0.15) !important;
+  }
+
+  /* ── Stat items ── */
+  .ctrl-stat-item {
+    border-color: rgba(245,158,11,0.1) !important;
+  }
+  body.dark-mode .ctrl-stat-item {
+    border-color: rgba(251,191,36,0.15) !important;
+  }
+
+  /* ── Panel note items ── */
+  .panel-note-item {
+    border-color: rgba(245,158,11,0.1) !important;
+  }
+  .panel-note-circle.correct {
+    background: #F59E0B !important;
+  }
+  body.dark-mode .panel-note-item {
+    border-color: rgba(251,191,36,0.15) !important;
+  }
+
+  /* ── Note circles — correct = amber (treble-matched) ── */
+  .note-circle.correct {
+    background: #F59E0B !important;
+  }
+
+  /* ── Measure pip progress ── */
+  .measure-pip.done,
+  .measure-pip.active {
+    background: linear-gradient(135deg, #fbbf24, #f59e0b) !important;
+  }
+  .measure-pip.active {
+    box-shadow: 0 0 8px rgba(245,158,11,0.5) !important;
+  }
+
+  /* ── Training progress bar ── */
+  #trainingProgressFill,
+  #panelProgressFill {
+    background: linear-gradient(90deg, #fbbf24, #f59e0b, #22C55E) !important;
+  }
+  #trainingProgressText {
+    color: #D97706 !important;
+  }
+  #trainingProgress,
+  #panelProgressBar {
+    background: rgba(245,158,11,0.12) !important;
+  }
+
+  /* ── Score highlight on SVG ── */
+  #scoreHighlight {
+    border-color: #F59E0B !important;
+    background: rgba(245,158,11,0.22) !important;
+    box-shadow: 0 0 0 4px rgba(245,158,11,0.15), 0 0 16px rgba(245,158,11,0.30) !important;
+  }
+
+  /* ── Score image border ── */
+  #scoreImg {
+    border-color: rgba(245,158,11,0.15) !important;
+  }
+
+  /* ── Falling note drop shadow ── */
+  .falling-note {
+    filter: drop-shadow(0 6px 14px rgba(245,158,11,0.35)) !important;
+  }
+
+  /* ── Score keyboard label ── */
+  #scoreKeyboardLabel {
+    color: #D97706 !important;
+  }
+
+  /* ── Bottom dock (score mode) border ── */
+  #bottomDock.score-mode {
+    border-top-color: rgba(245,158,11,0.18) !important;
+  }
+
+  /* ── Dark mode bottom dock ── */
+  body.dark-mode #bottomDock.score-mode {
+    background: rgba(20,16,8,0.97) !important;
+  }
+
+  /* ── Accent-color for checkboxes ── */
   #notesStatsToggle,
-  #scoreStatsToggle { accent-color: #3B82F6 !important; }
+  #scoreStatsToggle {
+    accent-color: #F59E0B !important;
+  }
 
-  /* Blue correct note circle */
-  .note-circle.correct,
-  .panel-note-circle.correct { background: #3B82F6 !important; }
+  /* ── BPM input border ── */
+  #bpmInput {
+    border-color: rgba(245,158,11,0.25) !important;
+  }
+
+  /* ── Toggle switch ── */
+  .toggle-switch input:checked + .toggle-track {
+    background: #F59E0B !important;
+  }
+
+  /* ── Dark mode score obj paper ── */
+  body.dark-mode.score-mode #scoreObj {
+    background: #fffbeb !important;
+    box-shadow: 0 0 0 12px #fffbeb, 0 4px 32px rgba(245,158,11,0.18) !important;
+  }
+
+  /* ── Stop button amber tint ── */
+  .ctrl-btn[onclick*="stopButton"] {
+    background: #fffbeb !important;
+    color: #D97706 !important;
+    border-color: #fde68a !important;
+  }
+
+  /* ── Skip preview box ── */
+  #skipPreviewBox {
+    background: rgba(245,158,11,0.10) !important;
+    border-color: rgba(245,158,11,0.5) !important;
+  }
+  #skipPreviewBtn {
+    background: linear-gradient(135deg,#fffbeb,#fef3c7) !important;
+    color: #92400e !important;
+    border-color: #fcd34d !important;
+  }
 </style>
 </head>
 <body>
@@ -52,24 +255,91 @@ window.SONG_CONFIG = {
   productId: "song:aaogejab",
   midiFile:  "../midi/aaogejab.mid",
   svgBase:   "../svg/aaogejab",
-  svgPages:  3,
   timeSignature: [4, 4],
   measures:      71,
-  repeats:       [],   // MIDI is pre-expanded — bars 7–14 repeat already baked in
-  pickupBeats:   0,
+
+  // Bars 7–13 repeat in MIDI timeline (physical bars 15–21 = logical 7–13)
+  repeats: [{ start: 7, end: 13 }],
+
+  pickupBeats: 0,
+
   sections: [
-    { label: "Intro",                    start: 1,  end: 6  },
-    { label: "Aaoge jab tum — saajana", start: 7,  end: 14 },
-    { label: "Repeat — saajana",         start: 15, end: 21 },
-    { label: "Antara I — Neel gagan",    start: 22, end: 35 },
-    { label: "Mukhda reprise",           start: 36, end: 50 },
-    { label: "Antara II — Tum jo kahen", start: 51, end: 64 },
-    { label: "Coda / ending",            start: 65, end: 71 },
+    { label: "Intro",            start: 1,  end: 6  },
+    { label: "Mukhda",           start: 7,  end: 18 },
+    { label: "Mukhda (repeat)",  start: 7,  end: 13 },
+    { label: "Antara 1",         start: 19, end: 36 },
+    { label: "Mukhda reprise",   start: 37, end: 47 },
+    { label: "Antara 2",         start: 48, end: 65 },
+    { label: "Outro / Coda",     start: 66, end: 71 },
   ],
+
   brandUrl:     "https://riashandilya-svg.github.io/classicbollywoodmelodies/index.html",
   brandName:    "Ria Om Shandilya",
   youtubeUrl:   "https://www.youtube.com/watch?v=FaJh5yr51iw",
-  youtubeLabel: "Quick Guide to Measures &amp; Sheet",
+  youtubeLabel: "Quick Guide to Measures & Sheet",
+
+  // ── Theme: amber/yellow treble, blue bass ──────────────────────────────────
+  themeOverride: {
+    trebleNote:        '#F59E0B',
+    bassNote:          '#3B82F6',
+    trebleFallTop:     'rgba(254,243,199,0.92)',
+    trebleFallMid1:    'rgba(253,224,71,0.88)',
+    trebleFallMid2:    'rgba(245,158,11,0.90)',
+    trebleFallBot:     'rgba(180,83,9,0.94)',
+    trebleFallShadow:  'rgba(251,191,36,0.55)',
+    bassFallTop:       'rgba(191,219,254,0.92)',
+    bassFallMid1:      'rgba(147,197,253,0.88)',
+    bassFallMid2:      'rgba(59,130,246,0.90)',
+    bassFallBot:       'rgba(29,78,216,0.94)',
+    bassFallShadow:    'rgba(96,165,250,0.4)',
+    whiteKeyTrebleTop: '#FEF3C7',
+    whiteKeyTrebleBot: '#FDE68A',
+    whiteKeyBassTop:   '#BFDBFE',
+    whiteKeyBassBot:   '#93C5FD',
+    blackKeyTrebleTop: '#FCD34D',
+    blackKeyTrebleBot: '#B45309',
+    blackKeyBassTop:   '#93C5FD',
+    blackKeyBassBot:   '#1D4ED8',
+    keyTrebleGlowShadow: '#fbbf24',
+    keyTrebleGlowFillW:  'rgba(251,191,36,0.15)',
+    keyTrebleGlowFillB:  'rgba(251,191,36,0.4)',
+    keyBassGlowShadow:   '#60a5fa',
+    keyBassGlowFillW:    'rgba(96,165,250,0.15)',
+    keyLabelTreble:      '#78350F',
+    keyLabelBass:        '#555',
+    fallingLabelTreble:  'rgba(255,255,255,0.95)',
+    fallingLabelBass:    'rgba(255,255,255,0.95)',
+    bpmFocusBorder:  'rgba(245,158,11,0.6)',
+    bpmFocusShadow:  'rgba(245,158,11,0.15)',
+    bpmBlurBorder:   'rgba(245,158,11,0.25)',
+  },
+
+  // svgPageSystems: measured from aaogejab-1.svg, aaogejab-2.svg, aaogejab-3.svg
+  // viewBox: 0 0 2976.38 4209.44
+  // 12 systems × varying measures = 71 total
+  svgPageSystems: [
+    // PAGE 1 — m1–m6, m7–m12, m13–m18, m19–m24
+    [
+      { treble_top: 735.2,  treble_bot: 834.4,  bass_top: 995.7,  bass_bot: 1094.9, barline_xs: [338.6, 924.5, 1290.9, 1657.4, 2062.3, 2401.9, 2761.8], start_measure: 1  },
+      { treble_top: 1556.5, treble_bot: 1655.8, bass_top: 1817.0, bass_bot: 1916.2, barline_xs: [214.6, 829.3, 1233.7, 1604.1, 1967.8, 2431.1, 2761.8], start_measure: 7  },
+      { treble_top: 2377.9, treble_bot: 2477.1, bass_top: 2736.3, bass_bot: 2835.5, barline_xs: [214.6, 809.8, 1235.2, 1581.5, 2003.7, 2415.5, 2761.8], start_measure: 13 },
+      { treble_top: 3297.2, treble_bot: 3396.4, bass_top: 3680.2, bass_bot: 3779.4, barline_xs: [214.6, 814.9, 1211.8, 1566.8, 1978.7, 2349.9, 2761.8], start_measure: 19 },
+    ],
+    // PAGE 2 — m25–m30, m31–m36, m37–m42, m43–m47
+    [
+      { treble_top: 416.9,  treble_bot: 516.1,  bass_top: 786.3,  bass_bot: 885.5,  barline_xs: [214.6, 847.1, 1235.6, 1601.3, 1950.2, 2358.0, 2761.8], start_measure: 25 },
+      { treble_top: 1407.3, treble_bot: 1506.5, bass_top: 1726.0, bass_bot: 1825.2, barline_xs: [214.6, 808.3, 1161.1, 1590.0, 2005.6, 2358.5, 2761.8], start_measure: 31 },
+      { treble_top: 2347.1, treble_bot: 2446.3, bass_top: 2675.4, bass_bot: 2774.7, barline_xs: [214.6, 743.3, 1068.4, 1549.4, 1922.2, 2429.9, 2761.8], start_measure: 37 },
+      { treble_top: 3296.5, treble_bot: 3395.7, bass_top: 3694.3, bass_bot: 3793.6, barline_xs: [214.6, 867.2, 1209.3, 1682.2, 2189.5, 2761.8],           start_measure: 43 },
+    ],
+    // PAGE 3 — m48–m53, m54–m59, m60–m65, m66–m71
+    [
+      { treble_top: 423.7,  treble_bot: 522.9,  bass_top: 781.1,  bass_bot: 880.3,  barline_xs: [214.6, 797.6, 1195.4, 1500.3, 1886.8, 2357.1, 2761.8], start_measure: 48 },
+      { treble_top: 1412.2, treble_bot: 1511.5, bass_top: 1779.4, bass_bot: 1878.6, barline_xs: [214.6, 764.9, 1144.2, 1565.4, 1993.8, 2422.6, 2761.8], start_measure: 54 },
+      { treble_top: 2410.6, treble_bot: 2509.8, bass_top: 2775.3, bass_bot: 2874.5, barline_xs: [214.6, 781.6, 1199.6, 1516.7, 1901.5, 2274.3, 2761.8], start_measure: 60 },
+      { treble_top: 3406.5, treble_bot: 3505.7, bass_top: 3694.3, bass_bot: 3793.6, barline_xs: [214.6, 915.1, 1455.5, 1991.5, 2440.3, 2730.7, 2757.2], start_measure: 66 },
+    ],
+  ],
 };
 </script>
 
@@ -100,7 +370,7 @@ window.SONG_CONFIG = {
   <a href="" id="brandLink">
     <span id="brandName"></span>
   </a>
-
+  
   <a href="" id="youtubeBtn" target="_blank">
     <span id="youtubeBtnLabel">Quick Guide to Measures &amp; Sheet</span>
   </a>
@@ -121,7 +391,6 @@ window.SONG_CONFIG = {
 </script>
 
       <h1 id="songTitle"></h1>
-
 
 <div id="paywall"></div>
 
@@ -210,7 +479,7 @@ window.SONG_CONFIG = {
         <span>BPM</span>
     </div>
     <label title="Hide extra stats" style="display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;font-size:10px;font-weight:600;color:#aaa;letter-spacing:0.04em;white-space:nowrap;">
-        <input type="checkbox" id="notesStatsToggle" checked style="width:13px;height:13px;accent-color:#3B82F6;cursor:pointer;">
+        <input type="checkbox" id="notesStatsToggle" checked style="width:13px;height:13px;accent-color:#F59E0B;cursor:pointer;">
         all stats
     </label>
 </div>
@@ -273,7 +542,7 @@ window.SONG_CONFIG = {
         End Measure
         <input id="panelEndMeasure" type="number" min="1" style="width:64px;padding:7px;border-radius:9px;border:1px solid #ececec;background:#fafafa;font-size:14px;text-align:center;"
           oninput="document.getElementById('endMeasureInput').value=this.value"
-          value="4">
+          value="6">
       </label>
     </div>
     <!-- Song section shortcuts -->
@@ -292,13 +561,13 @@ window.SONG_CONFIG = {
         })(this)">
         <option value="">🎵 Jump to section…</option>
         <!-- options injected by engine from SONG_CONFIG.sections -->
-      </select>
+</select>
     </div>
     <button class="ctrl-btn-primary" onclick="document.getElementById('startPracticeButton').click()">▶ Start Practice</button>
-    <button class="ctrl-btn" style="width:100%;margin-top:8px;background:#fffde7!important;color:#B45309!important;border-color:#fde68a!important;" onclick="document.getElementById('stopButton').click()">■ Stop</button>
-    <div id="skipPreviewBox" style="display:none;margin-top:8px;background:rgba(59,130,246,0.08);border:1.5px dashed rgba(59,130,246,0.4);border-radius:12px;padding:8px 10px;text-align:center;">
-      <div style="font-size:11px;font-weight:700;color:#1D4ED8;letter-spacing:0.07em;margin-bottom:5px;">LISTENING…</div>
-      <button id="skipPreviewBtn" class="ctrl-btn" style="width:100%;background:linear-gradient(135deg,#eff6ff,#dbeafe)!important;color:#1D4ED8!important;border-color:#93c5fd!important;font-weight:700!important;font-size:12px!important;" onclick="window._skipPreview()">⏩ Skip to My Turn</button>
+    <button class="ctrl-btn" style="width:100%;margin-top:8px;background:#fffbeb!important;color:#92400e!important;border-color:#fde68a!important;" onclick="document.getElementById('stopButton').click()">■ Stop</button>
+    <div id="skipPreviewBox" style="display:none;margin-top:8px;border-radius:12px;padding:8px 10px;text-align:center;">
+      <div style="font-size:11px;font-weight:700;color:#92400e;letter-spacing:0.07em;margin-bottom:5px;">LISTENING…</div>
+      <button id="skipPreviewBtn" class="ctrl-btn" style="width:100%;font-weight:700!important;font-size:12px!important;" onclick="window._skipPreview()">⏩ Skip to My Turn</button>
     </div>
   </div>
 
@@ -332,7 +601,7 @@ window.SONG_CONFIG = {
           font-size:15px;
           font-weight:700;
           font-family:inherit;
-          border:1px solid rgba(59,130,246,0.25);
+          border:1px solid rgba(245,158,11,0.25);
           border-radius:8px;
           padding:4px 6px;
           background:rgba(255,255,255,0.9);
@@ -385,7 +654,7 @@ window.SONG_CONFIG = {
     <div class="ctrl-card-title" style="display:flex;align-items:center;justify-content:space-between;">
       <span>STATS</span>
       <label title="Show/hide stats" style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:10px;font-weight:600;color:#aaa;letter-spacing:0.04em;">
-        <input type="checkbox" id="scoreStatsToggle" checked style="width:13px;height:13px;accent-color:#3B82F6;cursor:pointer;">
+        <input type="checkbox" id="scoreStatsToggle" checked style="width:13px;height:13px;accent-color:#F59E0B;cursor:pointer;">
         all
       </label>
     </div>
@@ -411,6 +680,7 @@ window.SONG_CONFIG = {
         <span class="ctrl-stat-label">BPM</span>
       </div>
     </div>
+    <!-- Progress bar — only visible in score mode -->
     <div id="panelProgressWrap">
       <div id="panelProgressBar">
         <div id="panelProgressFill"></div>
@@ -419,7 +689,7 @@ window.SONG_CONFIG = {
     </div>
   </div>
 
-  <!-- NOTE CIRCLES card -->
+  <!-- NOTE CIRCLES card — score mode only -->
   <div class="ctrl-card" id="panelNoteCirclesCard">
     <div class="ctrl-card-title">NOTES</div>
     <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
@@ -434,6 +704,7 @@ window.SONG_CONFIG = {
     </div>
   </div>
 
+
 </div>
 <!-- ====== END PANEL ====== -->
 
@@ -447,33 +718,41 @@ window.SONG_CONFIG = {
                 <option value="both">Both Hands</option>
             </select>
         </label>
+    
         <label>
             Start Measure:
             <input id="startMeasureInput" type="number" min="1" value="1" style="width:60px;">
         </label>
+        
         <label>
             End Measure:
-            <input id="endMeasureInput" type="number" min="1" value="4" style="width:60px;">
+            <input id="endMeasureInput" type="number" min="1" value="6" style="width:60px;">
         </label>
+        
+    
         <button id="startPracticeButton">Start Practice</button>
     </div>
     <button id="stopButton">Stop</button>
     <button id="freeModeButton">Free Mode</button>
     <button id="resetButton">Reset</button>
     <button id="toggleNamesButton">Hide Note Names</button>
-    <button id="playSongButton">Play Full Song</button>
-    <button id="beatToggle">Beat</button>
-    <button id="countToggle">Counting</button>
-    <button id="subdivisionToggle">1 & 2 &</button>
-    <button id="languageToggle">EN</button>
-    <label style="display:flex;align-items:center;gap:6px;font-size:16px;">
-        <input type="checkbox" id="skipRepeatsCheckbox">
-        Skip repeats in sheet
-    </label>
-    <label style="display:flex;align-items:center;gap:6px;font-size:16px;">
-        <input type="checkbox" id="loopCheckbox">
-        Loop section
-    </label>
+<button id="playSongButton">Play Full Song</button>
+<button id="beatToggle">Beat</button>
+<button id="countToggle">Counting</button>
+<button id="subdivisionToggle">1 & 2 &</button>
+<button id="languageToggle">EN</button>
+    
+<label style="display:flex;align-items:center;gap:6px;font-size:16px;">
+    <input type="checkbox" id="skipRepeatsCheckbox">
+    Skip repeats in sheet
+</label>
+
+<label style="display:flex;align-items:center;gap:6px;font-size:16px;">
+    <input type="checkbox" id="loopCheckbox">
+    Loop section
+</label>
+
+
     <button id="speedDown">–</button>
     <span id="speedDisplay" style="font-size:18px;min-width:60px;text-align:center;">1.0×</span>
     <button id="speedUp">+</button>
