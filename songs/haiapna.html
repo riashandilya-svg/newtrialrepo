@@ -8,12 +8,229 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../engine.css">
-<!-- ✏️ Per-song color override — haiapna uses blue -->
+<!-- ✏️ Per-song color override — score-mode blue palette -->
 <style>
   :root {
     --accent-primary: #3B82F6;
-    --yellow1: rgba(59, 130, 246, 0.22);
-    --yellow2: rgba(147, 197, 253, 0.16);
+    --accent-success: #22C55E;
+    --accent-error:   #EF4444;
+
+    --blue1: rgba(59, 130, 246, 0.22);
+    --blue2: rgba(147, 197, 253, 0.16);
+    --softWhite: rgba(255, 255, 255, 0.10);
+
+    --border-soft: rgba(59, 130, 246, 0.18);
+  }
+
+  /* ── Ambient glow ── */
+  body::before {
+    background: radial-gradient(circle, #bfdbfe 0%, transparent 70%) !important;
+    opacity: 0.32 !important;
+  }
+  body::after {
+    background: radial-gradient(circle, #dbeafe 0%, transparent 70%) !important;
+    opacity: 0.22 !important;
+  }
+  body {
+    background:
+      radial-gradient(900px 520px at 20% 0%,  rgba(59,130,246,0.22), transparent 60%),
+      radial-gradient(900px 520px at 85% 10%, rgba(255,255,255,0.10), transparent 62%),
+      radial-gradient(780px 480px at 50% 80%, rgba(147,197,253,0.16), transparent 60%),
+      radial-gradient(520px 320px at 35% 55%, rgba(59,130,246,0.10),  transparent 60%),
+      #ffffff !important;
+  }
+  body.dark-mode::before { background: radial-gradient(circle, #3b82f6 0%, transparent 70%) !important; opacity: 0.18 !important; }
+  body.dark-mode::after  { background: radial-gradient(circle, #60a5fa 0%, transparent 70%) !important; opacity: 0.10 !important; }
+
+  /* ── Brand bar border ── */
+  #brandBar {
+    border-bottom-color: rgba(59,130,246,0.18) !important;
+  }
+
+  /* ── Hit line ── */
+  #hitLine {
+    background: linear-gradient(90deg, transparent 2%, #3b82f6 20%, #60a5fa 50%, #3b82f6 80%, transparent 98%) !important;
+    box-shadow: 0 0 12px #3b82f6, 0 0 28px rgba(59,130,246,0.5) !important;
+  }
+
+  /* ── Game stage ── */
+  #gameStage {
+    background: linear-gradient(180deg, rgba(255,255,255,0.75) 0%, rgba(245,249,255,0.88) 100%) !important;
+    border-color: rgba(59,130,246,0.12) !important;
+  }
+  body.dark-mode #gameStage {
+    background: linear-gradient(180deg, rgba(24,28,37,0.88) 0%, rgba(15,17,23,0.95) 100%) !important;
+    border-color: rgba(96,165,250,0.18) !important;
+  }
+
+  /* ── Stats bar ── */
+  #statsBar {
+    border-color: rgba(59,130,246,0.13) !important;
+  }
+  body.dark-mode #statsBar {
+    border-color: rgba(96,165,250,0.18) !important;
+  }
+
+  /* ── Control cards ── */
+  .ctrl-card {
+    border-color: rgba(59,130,246,0.15) !important;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.07), 0 2px 8px rgba(59,130,246,0.06) !important;
+  }
+  .ctrl-card:hover {
+    box-shadow: 0 18px 50px rgba(0,0,0,0.1), 0 4px 12px rgba(59,130,246,0.1) !important;
+  }
+  .ctrl-card-title {
+    color: #3B82F6 !important;
+  }
+  body.dark-mode .ctrl-card {
+    border-color: rgba(96,165,250,0.25) !important;
+  }
+  body.dark-mode .ctrl-card-title {
+    color: #60a5fa !important;
+  }
+
+  /* ── Ctrl buttons ── */
+  .ctrl-btn {
+    border-color: rgba(59,130,246,0.1) !important;
+  }
+  .ctrl-btn:hover:not(:disabled) {
+    background: rgba(239,246,255,0.95) !important;
+    color: #3B82F6 !important;
+    box-shadow: 0 6px 16px rgba(59,130,246,0.18) !important;
+  }
+  .ctrl-btn.active {
+    background: linear-gradient(135deg, rgba(239,246,255,0.95), rgba(219,234,254,0.95)) !important;
+    color: #3B82F6 !important;
+    border-color: rgba(59,130,246,0.3) !important;
+    box-shadow: 0 4px 12px rgba(59,130,246,0.2) !important;
+  }
+  body.dark-mode .ctrl-btn:hover:not(:disabled) {
+    background: rgba(96,165,250,0.12) !important;
+    color: #60a5fa !important;
+  }
+
+  /* ── Primary button ── */
+  .ctrl-btn-primary {
+    background: linear-gradient(135deg, #60a5fa, #3b82f6) !important;
+    box-shadow: 0 6px 20px rgba(59,130,246,0.32) !important;
+  }
+  .ctrl-btn-primary:hover:not(:disabled) {
+    box-shadow: 0 10px 28px rgba(59,130,246,0.42) !important;
+  }
+
+  /* ── Speed row ── */
+  .ctrl-speed-row {
+    border-color: rgba(59,130,246,0.1) !important;
+  }
+  body.dark-mode .ctrl-speed-row {
+    border-color: rgba(96,165,250,0.15) !important;
+  }
+
+  /* ── Stat items ── */
+  .ctrl-stat-item {
+    border-color: rgba(59,130,246,0.1) !important;
+  }
+  body.dark-mode .ctrl-stat-item {
+    border-color: rgba(96,165,250,0.15) !important;
+  }
+
+  /* ── Panel note items ── */
+  .panel-note-item {
+    border-color: rgba(59,130,246,0.1) !important;
+  }
+  .panel-note-circle.correct {
+    background: #3B82F6 !important;
+  }
+  body.dark-mode .panel-note-item {
+    border-color: rgba(96,165,250,0.15) !important;
+  }
+
+  /* ── Note circles (side feedback) — correct = blue (ekladki-matched) ── */
+  .note-circle.correct {
+    background: #3B82F6 !important;
+  }
+
+  /* ── Measure pip progress ── */
+  .measure-pip.done,
+  .measure-pip.active {
+    background: linear-gradient(135deg, #60a5fa, #3b82f6) !important;
+  }
+  .measure-pip.active {
+    box-shadow: 0 0 8px rgba(59,130,246,0.5) !important;
+  }
+
+  /* ── Training progress bar ── */
+  #trainingProgressFill,
+  #panelProgressFill {
+    background: linear-gradient(90deg, #60a5fa, #3b82f6, #22C55E) !important;
+  }
+  #trainingProgressText {
+    color: #3B82F6 !important;
+  }
+  #trainingProgress,
+  #panelProgressBar {
+    background: rgba(59,130,246,0.12) !important;
+  }
+
+  /* ── Score highlight on SVG ── */
+  #scoreHighlight {
+    border-color: #3B82F6 !important;
+    background: rgba(59,130,246,0.22) !important;
+    box-shadow: 0 0 0 4px rgba(59,130,246,0.15), 0 0 16px rgba(59,130,246,0.30) !important;
+  }
+
+  /* ── Score image border ── */
+  #scoreImg {
+    border-color: rgba(59,130,246,0.15) !important;
+  }
+
+  /* ── Falling note drop shadow ── */
+  .falling-note {
+    filter: drop-shadow(0 6px 14px rgba(59,130,246,0.35)) !important;
+  }
+
+  /* ── Score keyboard label ── */
+  #scoreKeyboardLabel {
+    color: #3B82F6 !important;
+  }
+
+  /* ── Bottom dock (score mode) border ── */
+  #bottomDock.score-mode {
+    border-top-color: rgba(59,130,246,0.18) !important;
+  }
+
+  /* ── Dark mode bottom dock ── */
+  body.dark-mode #bottomDock.score-mode {
+    background: rgba(15,17,23,0.97) !important;
+  }
+
+  /* ── Accent-color for checkboxes ── */
+  #notesStatsToggle,
+  #scoreStatsToggle {
+    accent-color: #3B82F6 !important;
+  }
+
+  /* ── BPM input border ── */
+  #bpmInput {
+    border-color: rgba(59,130,246,0.25) !important;
+  }
+
+  /* ── Toggle switch ── */
+  .toggle-switch input:checked + .toggle-track {
+    background: #3B82F6 !important;
+  }
+
+  /* ── Dark mode score obj paper ── */
+  body.dark-mode.score-mode #scoreObj {
+    background: #f0f7ff !important;
+    box-shadow: 0 0 0 12px #f0f7ff, 0 4px 32px rgba(59,130,246,0.18) !important;
+  }
+
+  /* ── Stop button blue tint ── */
+  .ctrl-btn[onclick*="stopButton"] {
+    background: #eff6ff !important;
+    color: #3B82F6 !important;
+    border-color: #bfdbfe !important;
   }
 </style>
 </head>
@@ -43,6 +260,42 @@ window.SONG_CONFIG = {
   brandName:    "Ria Om Shandilya",
   youtubeUrl:   "https://www.youtube.com/watch?v=FaJh5yr51iw",
   youtubeLabel: "Quick Guide to Measures & Sheet",
+
+  // ── Theme: ekladki-matched colors ──────────────────────────────────────────
+  themeOverride: {
+    trebleNote:        '#3B82F6',
+    bassNote:          '#EAB308',
+    trebleFallTop:     'rgba(191,219,254,0.92)',
+    trebleFallMid1:    'rgba(147,197,253,0.88)',
+    trebleFallMid2:    'rgba(59,130,246,0.90)',
+    trebleFallBot:     'rgba(29,78,216,0.94)',
+    trebleFallShadow:  'rgba(96,165,250,0.55)',
+    bassFallTop:       'rgba(255,251,150,0.92)',
+    bassFallMid1:      'rgba(255,236,50,0.88)',
+    bassFallMid2:      'rgba(250,204,21,0.90)',
+    bassFallBot:       'rgba(202,138,4,0.94)',
+    bassFallShadow:    'rgba(245,158,11,0.4)',
+    whiteKeyTrebleTop: '#BFDBFE',
+    whiteKeyTrebleBot: '#93C5FD',
+    whiteKeyBassTop:   '#FEF9C3',
+    whiteKeyBassBot:   '#FDE047',
+    blackKeyTrebleTop: '#93C5FD',
+    blackKeyTrebleBot: '#1D4ED8',
+    blackKeyBassTop:   '#FEF9C3',
+    blackKeyBassBot:   '#CA8A04',
+    keyTrebleGlowShadow: '#60a5fa',
+    keyTrebleGlowFillW:  'rgba(96,165,250,0.15)',
+    keyTrebleGlowFillB:  'rgba(96,165,250,0.4)',
+    keyBassGlowShadow:   '#FDE047',
+    keyBassGlowFillW:    'rgba(253,224,71,0.15)',
+    keyLabelTreble:      '#555',
+    keyLabelBass:        '#78350F',
+    fallingLabelTreble:  'rgba(255,255,255,0.95)',
+    fallingLabelBass:    'rgba(255,255,255,0.95)',
+    bpmFocusBorder:  'rgba(59,130,246,0.6)',
+    bpmFocusShadow:  'rgba(59,130,246,0.15)',
+    bpmBlurBorder:   'rgba(59,130,246,0.25)',
+  },
 
   // svgPageSystems: measured directly from haiapna-1.svg and haiapna-2.svg
   // 10 systems × 4 measures = 40 measures total, no pickup beat
