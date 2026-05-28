@@ -238,6 +238,11 @@ window.SONG_CONFIG = {
   midiFile:  "../midi/palpalharpal.mid",
   svgBase:   "../svg/palpalharpal",
   timeSignature: [4, 4],
+  timeSignatureChanges: [
+    { measure: 53, beats: 2 },   // → 2/4 from m53
+    { measure: 69, beats: 4 },   // → 4/4 from m69 onwards
+    ],
+
   measures:      89,   // physical MIDI measure count
   repeats:       [],
   pickupBeats:   0,
