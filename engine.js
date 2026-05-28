@@ -4605,8 +4605,11 @@ function _buildSvgNoteIndex() {
                         const idx = _svgNoteElements.length;
                         _svgNoteElements.push({ el: n.el, tx: n.tx, ty: n.ty, clef, sheet_measure, isGrace: n.isGrace, pageNum });
 
-                        // No repeat boundary — all noteheads go into _svgBuckets
-                        const targetBuckets = _svgBuckets;
+                        // For songs with a repeat, page-2 copies of REPEAT_END go into
+                        // _svgBucketsPage2 so first-pass highlights use page-1 noteheads
+                        // and repeat-pass highlights use page-2 noteheads.
+                        const isRepeatPassPage = (REPEAT_END > 0 && pageNum >= 2 && sheet_measure === REPEAT_END);
+                        const targetBuckets = isRepeatPassPage ? _svgBucketsPage2 : _svgBuckets;
                         if (!targetBuckets[sheet_measure]) targetBuckets[sheet_measure] = { treble: [], bass: [] };
                         targetBuckets[sheet_measure][clef].push(idx);
                         break;
@@ -4888,12 +4891,19 @@ function _svgIndicesForMidiNote(noteObj, hand) {
     const { clef } = entry;
     if (hand !== 'both' && clef !== hand) return [];
 
-    // No repeats — always use the primary _svgBuckets
-    const bucketSource = _svgBuckets;
+    // For songs with a repeat, REPEAT_END noteheads live in _svgBucketsPage2
+    // (the page-1 copy only has a tied whole note which is excluded from the bucket).
+    // Both first-pass and repeat-pass notes for that measure use _svgBucketsPage2.
+    const physMeasure2 = REPEAT_END > 0 ? getMeasureFromTime(noteObj.time) : null;
+    const isRepeatPass2 = REPEAT_END > 0 && entry.sheet_measure === REPEAT_END &&
+                          physMeasure2 !== null && physMeasure2 > REPEAT_END;
+    const bucketSource = (REPEAT_END > 0 && (isRepeatPass2 || entry.sheet_measure === REPEAT_END))
+        ? _svgBucketsPage2
+        : _svgBuckets;
 
     const bucket = bucketSource[entry.sheet_measure]?.[clef];
     if (!bucket || entry.rank >= bucket.length) {
-        console.warn(`_svgIndicesForMidiNote: bucket[${entry.sheet_measure}][${clef}] rank=${entry.rank} missing`);
+        console.warn(`_svgIndicesForMidiNote: bucket[${entry.sheet_measure}][${clef}] rank=${entry.rank} missing (repeatPass=${isRepeatPass2})`);
         return [];
     }
 
