@@ -49,6 +49,119 @@ import { Midi } from 'https://esm.sh/@tonejs/midi@2.0.28';
 if (!window.SONG_CONFIG) throw new Error("[engine] window.SONG_CONFIG is not defined. Each song HTML must set it before loading engine.js.");
 const SONG_CONFIG = window.SONG_CONFIG;
 
+// ============================================================
+// THEME — derived from SONG_CONFIG.accentPrimary (a CSS hex color, e.g. "#3B82F6")
+// Songs set one accent hex; the engine derives every canvas/SVG color from it.
+// Falls back to the exact original purple/gold defaults when no accent is supplied.
+// ============================================================
+(function buildTheme() {
+  function hexToRgb(hex) {
+    hex = hex.replace('#', '');
+    if (hex.length === 3) hex = hex.split('').map(c => c+c).join('');
+    const n = parseInt(hex, 16);
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  }
+  function rgba([r,g,b], a) { return `rgba(${r},${g},${b},${a})`; }
+  function lighten([r,g,b], t) {
+    return [Math.round(r+(255-r)*t), Math.round(g+(255-g)*t), Math.round(b+(255-b)*t)];
+  }
+  function darken([r,g,b], t) {
+    return [Math.round(r*(1-t)), Math.round(g*(1-t)), Math.round(b*(1-t))];
+  }
+  function toHex([r,g,b]) { return '#'+[r,g,b].map(v=>v.toString(16).padStart(2,'0')).join(''); }
+
+  const hasAccent    = !!SONG_CONFIG.accentPrimary;
+  const hasBassAccent = !!SONG_CONFIG.accentBass;
+
+  if (!hasAccent) {
+    // ── No accent supplied: use the exact original hand-crafted purple/gold values ──
+    window.ENGINE_THEME = {
+      trebleNote:        '#9B2C6E',
+      bassNote:          '#B45309',
+      trebleFallTop:     'rgba(220,180,220,0.92)',
+      trebleFallMid1:    'rgba(168,100,160,0.88)',
+      trebleFallMid2:    'rgba(120,30,90,0.90)',
+      trebleFallBot:     'rgba(80,10,50,0.94)',
+      trebleFallShadow:  'rgba(160,40,120,0.60)',
+      bassFallTop:       'rgba(255,251,150,0.92)',
+      bassFallMid1:      'rgba(255,236,50,0.88)',
+      bassFallMid2:      'rgba(250,204,21,0.90)',
+      bassFallBot:       'rgba(202,138,4,0.94)',
+      bassFallShadow:    'rgba(245,158,11,0.4)',
+      whiteKeyTrebleTop: '#E8C8E8',
+      whiteKeyTrebleBot: '#7B1F5A',
+      whiteKeyBassTop:   '#FFECB3',
+      whiteKeyBassBot:   '#FFB300',
+      blackKeyTrebleTop: '#E8C8E8',
+      blackKeyTrebleBot: '#7B1F5A',
+      blackKeyBassTop:   '#FEF9C3',
+      blackKeyBassBot:   '#CA8A04',
+      keyTrebleGlowShadow: '#C060A0',
+      keyTrebleGlowFillW:  'rgba(160,40,120,0.18)',
+      keyTrebleGlowFillB:  'rgba(160,40,120,0.45)',
+      keyBassGlowShadow:   '#FDE047',
+      keyBassGlowFillW:    'rgba(253,224,71,0.15)',
+      keyLabelTreble:      '#F5D0F0',
+      keyLabelBass:        '#78350F',
+      fallingLabelTreble:  'rgba(255,220,255,0.95)',
+      fallingLabelBass:    'rgba(255,255,255,0.95)',
+      bpmFocusBorder:  'rgba(255,193,7,0.6)',
+      bpmFocusShadow:  'rgba(255,193,7,0.15)',
+      bpmBlurBorder:   'rgba(255,193,7,0.25)',
+    };
+    return;
+  }
+
+  // ── Accent supplied: derive all colors from it ──
+  const tRaw = hexToRgb(SONG_CONFIG.accentPrimary);
+  const bRaw = hasBassAccent ? hexToRgb(SONG_CONFIG.accentBass) : [180, 83, 9];
+
+  const tL1 = lighten(tRaw, 0.55);
+  const tL2 = lighten(tRaw, 0.30);
+  const tD1 = darken(tRaw,  0.20);
+  const tD2 = darken(tRaw,  0.45);
+  const bL1 = lighten(bRaw, 0.80);
+  const bL2 = lighten(bRaw, 0.55);
+  const bD1 = darken(bRaw,  0.10);
+  const bD2 = darken(bRaw,  0.40);
+
+  window.ENGINE_THEME = {
+    trebleNote:        toHex(tRaw),
+    bassNote:          toHex(bRaw),
+    trebleFallTop:     rgba(tL1, 0.92),
+    trebleFallMid1:    rgba(tL2, 0.88),
+    trebleFallMid2:    rgba(tRaw, 0.90),
+    trebleFallBot:     rgba(tD2, 0.94),
+    trebleFallShadow:  rgba(tD1, 0.60),
+    bassFallTop:       rgba(bL1, 0.92),
+    bassFallMid1:      rgba(bL2, 0.88),
+    bassFallMid2:      rgba(bRaw, 0.90),
+    bassFallBot:       rgba(bD2, 0.94),
+    bassFallShadow:    rgba(bD1, 0.40),
+    whiteKeyTrebleTop: toHex(lighten(tRaw, 0.60)),
+    whiteKeyTrebleBot: toHex(darken(tRaw, 0.30)),
+    whiteKeyBassTop:   toHex(lighten(bRaw, 0.70)),
+    whiteKeyBassBot:   toHex(bRaw),
+    blackKeyTrebleTop: toHex(lighten(tRaw, 0.60)),
+    blackKeyTrebleBot: toHex(darken(tRaw, 0.30)),
+    blackKeyBassTop:   toHex(lighten(bRaw, 0.80)),
+    blackKeyBassBot:   toHex(darken(bRaw, 0.25)),
+    keyTrebleGlowShadow: toHex(tL2),
+    keyTrebleGlowFillW:  rgba(tRaw, 0.18),
+    keyTrebleGlowFillB:  rgba(tRaw, 0.45),
+    keyBassGlowShadow:   toHex(bL1),
+    keyBassGlowFillW:    rgba(bRaw, 0.15),
+    keyLabelTreble:      toHex(lighten(tRaw, 0.65)),
+    keyLabelBass:        toHex(darken(bRaw, 0.45)),
+    fallingLabelTreble:  rgba(lighten(tRaw, 0.70), 0.95),
+    fallingLabelBass:    'rgba(255,255,255,0.95)',
+    bpmFocusBorder:  rgba(tRaw, 0.6),
+    bpmFocusShadow:  rgba(tRaw, 0.15),
+    bpmBlurBorder:   rgba(tRaw, 0.25),
+  };
+})();
+const THEME = window.ENGINE_THEME;
+
 // Repeat map — songs with no repeats use identity mapping
 const REPEAT_START = SONG_CONFIG.repeatStart || 0;
 const REPEAT_END   = SONG_CONFIG.repeatEnd   || 0;
@@ -412,11 +525,11 @@ function applyBpmInput() {
 
     // Style feedback on input focus
     bpmInput.addEventListener('focus', () => {
-        bpmInput.style.borderColor = 'rgba(255,193,7,0.6)';
-        bpmInput.style.boxShadow   = '0 0 0 3px rgba(255,193,7,0.15)';
+        bpmInput.style.borderColor = THEME.bpmFocusBorder;
+        bpmInput.style.boxShadow   = `0 0 0 3px ${THEME.bpmFocusShadow}`;
     });
     bpmInput.addEventListener('blur', () => {
-        bpmInput.style.borderColor = 'rgba(255,193,7,0.25)';
+        bpmInput.style.borderColor = THEME.bpmBlurBorder;
         bpmInput.style.boxShadow   = 'none';
     });
 })();
@@ -1378,11 +1491,11 @@ function drawKeyboard() {
             wGrad.addColorStop(0, '#D1FAE5');
             wGrad.addColorStop(1, '#6EE7B7');
         } else if (isTreble) {
-            wGrad.addColorStop(0, '#E8C8E8');
-            wGrad.addColorStop(1, '#7B1F5A');
+            wGrad.addColorStop(0, THEME.whiteKeyTrebleTop);
+            wGrad.addColorStop(1, THEME.whiteKeyTrebleBot);
         } else if (isBass) {
-            wGrad.addColorStop(0, '#FFECB3');
-            wGrad.addColorStop(1, '#FFB300');
+            wGrad.addColorStop(0, THEME.whiteKeyBassTop);
+            wGrad.addColorStop(1, THEME.whiteKeyBassBot);
         } else {
             wGrad.addColorStop(0, '#ffffff');
             wGrad.addColorStop(0.7, '#f5f5f5');
@@ -1423,24 +1536,24 @@ function drawKeyboard() {
 
         // Glow for active treble key
         if (isTreble && !isSustainedHold) {
-            ctx.shadowColor = '#C060A0';
+            ctx.shadowColor = THEME.keyTrebleGlowShadow;
             ctx.shadowBlur = 18;
-            ctx.fillStyle = 'rgba(160,40,120,0.18)';
+            ctx.fillStyle = THEME.keyTrebleGlowFillW;
             ctx.fillRect(x, keyboardTop, getWhiteKeyWidth(), keyHeight);
             ctx.shadowBlur = 0;
         }
 
         // Glow for active bass key
         if (isBass && !isSustainedHold) {
-            ctx.shadowColor = '#FDE047';
+            ctx.shadowColor = THEME.keyBassGlowShadow;
             ctx.shadowBlur = 18;
-            ctx.fillStyle = 'rgba(253,224,71,0.15)';
+            ctx.fillStyle = THEME.keyBassGlowFillW;
             ctx.fillRect(x, keyboardTop, getWhiteKeyWidth(), keyHeight);
             ctx.shadowBlur = 0;
         }
 
         if (showNoteNames) {
-            ctx.fillStyle = isBass ? '#78350F' : (isTreble ? '#F5D0F0' : '#555');
+            ctx.fillStyle = isBass ? THEME.keyLabelBass : (isTreble ? THEME.keyLabelTreble : '#555');
             ctx.font = `bold ${Math.max(9, Math.min(12, getWhiteKeyWidth() * 0.55))}px Inter, Arial`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'bottom';
@@ -1481,11 +1594,11 @@ function drawKeyboard() {
             bGrad.addColorStop(0, '#A7F3D0');
             bGrad.addColorStop(1, '#059669');
         } else if (isTreble) {
-            bGrad.addColorStop(0, '#E8C8E8');
-            bGrad.addColorStop(1, '#7B1F5A');
+            bGrad.addColorStop(0, THEME.blackKeyTrebleTop);
+            bGrad.addColorStop(1, THEME.blackKeyTrebleBot);
         } else if (isBass) {
-            bGrad.addColorStop(0, '#FEF9C3');
-            bGrad.addColorStop(1, '#CA8A04');
+            bGrad.addColorStop(0, THEME.blackKeyBassTop);
+            bGrad.addColorStop(1, THEME.blackKeyBassBot);
         } else {
             bGrad.addColorStop(0, '#333');
             bGrad.addColorStop(0.5, '#111');
@@ -1521,9 +1634,9 @@ function drawKeyboard() {
 
         // Glow for active treble
         if (isTreble && !isSustainedHold) {
-            ctx.shadowColor = '#C060A0';
+            ctx.shadowColor = THEME.keyTrebleGlowShadow;
             ctx.shadowBlur = 20;
-            ctx.fillStyle = 'rgba(160,40,120,0.45)';
+            ctx.fillStyle = THEME.keyTrebleGlowFillB;
             ctx.fillRect(x, keyboardTop, blackKeyWidth, blackKeyHeight);
             ctx.shadowBlur = 0;
         }
@@ -3044,25 +3157,25 @@ if (rect.y > canvas.height) {
 {
     const g = ctx.createLinearGradient(0, rect.y, 0, rect.y + rect.height);
     if (rect.track === TREBLE) {
-        g.addColorStop(0.00, "rgba(220,180,220,0.92)");
-        g.addColorStop(0.25, "rgba(168,100,160,0.88)");
-        g.addColorStop(0.65, "rgba(120,30,90,0.90)");
-        g.addColorStop(1.00, "rgba(80,10,50,0.94)");
+        g.addColorStop(0.00, THEME.trebleFallTop);
+        g.addColorStop(0.25, THEME.trebleFallMid1);
+        g.addColorStop(0.65, THEME.trebleFallMid2);
+        g.addColorStop(1.00, THEME.trebleFallBot);
     } else {
-        g.addColorStop(0.00, "rgba(255,251,150,0.92)");
-        g.addColorStop(0.25, "rgba(255,236,50,0.88)");
-        g.addColorStop(0.65, "rgba(250,204,21,0.90)");
-        g.addColorStop(1.00, "rgba(202,138,4,0.94)");
+        g.addColorStop(0.00, THEME.bassFallTop);
+        g.addColorStop(0.25, THEME.bassFallMid1);
+        g.addColorStop(0.65, THEME.bassFallMid2);
+        g.addColorStop(1.00, THEME.bassFallBot);
     }
     ctx.fillStyle = g;
 }
 
 // Glow shadow for treble notes
 if (rect.track === TREBLE) {
-    ctx.shadowColor = 'rgba(160,40,120,0.60)';
+    ctx.shadowColor = THEME.trebleFallShadow;
     ctx.shadowBlur = 18;
 } else {
-    ctx.shadowColor = 'rgba(245,158,11,0.4)';
+    ctx.shadowColor = THEME.bassFallShadow;
     ctx.shadowBlur = 10;
 }
 
@@ -3133,10 +3246,10 @@ ctx.restore();
 
 if (showNoteNames && rect.isMidi && rect.noteName) {
         if (rect.track === BASS) {
-            ctx.fillStyle = "rgba(255,255,255,0.95)";
+            ctx.fillStyle = THEME.fallingLabelBass;
             ctx.shadowColor = "rgba(0,0,0,0.5)";
         } else {
-            ctx.fillStyle = "rgba(255,220,255,0.95)";
+            ctx.fillStyle = THEME.fallingLabelTreble;
             ctx.shadowColor = "rgba(0,0,0,0.6)";
         }
         
@@ -5141,8 +5254,8 @@ function _applyHighlight(indices, colorMap) {
             if (typeof x !== 'number') return { idx: '?', midi: null, name: '?', colorKey: 'unknown' };
             const ne    = _svgNoteElements[x];
             const color = (colorMap && colorMap.has(x)) ? colorMap.get(x)
-                        : ne?.clef === 'bass' ? '#B45309' : '#9B2C6E';
-            const colorKey = color === '#16a34a' ? 'green' : color === '#9B2C6E' ? 'purple' : color === '#B45309' ? 'gold' : color;
+                        : ne?.clef === 'bass' ? THEME.bassNote : THEME.trebleNote;
+            const colorKey = color === '#16a34a' ? 'green' : color === THEME.trebleNote ? 'treble' : color === THEME.bassNote ? 'bass' : color;
             let midi = null;
             for (const [, entry] of _midiRankMap) {
                 const bucket = _svgBuckets[entry.sheet_measure]?.[entry.clef];
@@ -5167,9 +5280,9 @@ function _applyHighlight(indices, colorMap) {
         const el   = typeof x === 'number' ? _svgNoteElements[x]?.el : x;
         const clef = typeof x === 'number' ? _svgNoteElements[x]?.clef : null;
         if (!el) return;
-        // colorMap override → clef default (treble: purple-maroon, bass: gold)
+        // colorMap override → clef default (treble: accent, bass: bass accent)
         const color = (colorMap && colorMap.has(x)) ? colorMap.get(x)
-                    : clef === 'bass' ? '#B45309' : '#9B2C6E';
+                    : clef === 'bass' ? THEME.bassNote : THEME.trebleNote;
         el.setAttribute('fill', color);
         el.setAttribute('filter', 'url(#hlGlow)');
     });
