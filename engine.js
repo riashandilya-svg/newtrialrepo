@@ -175,19 +175,33 @@ async function loadSongMidi() {
 // MEASURE → TIME MAPPING
 // ==================================
 function buildMeasureTimeMap(config, secondsPerBeat) {
-    const beatsPerMeasure = config.timeSignature[0];
-    const secondsPerMeasure = beatsPerMeasure * secondsPerBeat;
+    // Support mid-song time signature changes via config.timeSignatureChanges:
+    // e.g. [{ measure: 53, beats: 2 }, { measure: 69, beats: 4 }]
+    // Each entry overrides the beat count from that measure onwards.
+    const changes = (config.timeSignatureChanges || [])
+        .slice()
+        .sort((a, b) => a.measure - b.measure);
+
+    function beatsForMeasure(m) {
+        let beats = config.timeSignature[0];
+        for (const ch of changes) {
+            if (m >= ch.measure) beats = ch.beats;
+            else break;
+        }
+        return beats;
+    }
 
     const map = {};
+    let currentTime = 0;
 
     for (let measure = 1; measure <= config.measures; measure++) {
-        const startTime = (measure - 1) * secondsPerMeasure;
-        const endTime = measure * secondsPerMeasure;
-
+        const beats = beatsForMeasure(measure);
+        const dur = beats * secondsPerBeat;
         map[measure] = {
-            start: startTime,
-            end: endTime
+            start: currentTime,
+            end: currentTime + dur
         };
+        currentTime += dur;
     }
 
     return map;
@@ -197,9 +211,23 @@ function buildMeasureTimeMap(config, secondsPerBeat) {
 // ================================
 function getMeasureFromTime(timeSeconds) {
     const EPS = 1e-6;
-    const m = Math.floor((timeSeconds + EPS) / secondsPerMeasure) + 1;
-    if (m < 1 || m > SONG_CONFIG.measures) return null;
-    return m;
+    const t = timeSeconds + EPS;
+    // Binary search through MEASURE_TIME_MAP (handles non-uniform measure durations)
+    let lo = 1, hi = SONG_CONFIG.measures;
+    while (lo <= hi) {
+        const mid = (lo + hi) >> 1;
+        const entry = MEASURE_TIME_MAP[mid];
+        if (!entry) { hi = mid - 1; continue; }
+        if (t < entry.start)      hi = mid - 1;
+        else if (t >= entry.end)  lo = mid + 1;
+        else                      return mid;
+    }
+    // Guard: clamp to last measure if time is at or past its end
+    const lastEntry = MEASURE_TIME_MAP[SONG_CONFIG.measures];
+    if (lastEntry && t >= lastEntry.start && t <= lastEntry.end + EPS) {
+        return SONG_CONFIG.measures;
+    }
+    return null;
 }
 
 
@@ -3925,6 +3953,19 @@ const allowedPhysical = new Set(physicalSeq);
 const physicalIndex = new Map();
 physicalSeq.forEach((p, idx) => physicalIndex.set(p, idx));
 
+// Cumulative play-time start for each position in physicalSeq.
+// With mixed time signatures, different measures may have different durations,
+// so we can't use idx * secondsPerMeasure — we must sum actual measure durations.
+const physicalSeqCumTime = [];
+{
+    let t = 0;
+    for (const p of physicalSeq) {
+        physicalSeqCumTime.push(t);
+        const entry = MEASURE_TIME_MAP[p];
+        t += entry ? (entry.end - entry.start) : secondsPerMeasure;
+    }
+}
+
 const logicalSeq =
     skipSheetRepeats
         ? Array.from({ length: endLogical - startLogical + 1 }, (_, i) => startLogical + i)
@@ -3937,7 +3978,10 @@ console.log("Physical measures used:", physicalSeq.join(","));
 
 
 sectionStartTime = 0;
-sectionEndTime   = physicalSeq.length * secondsPerMeasure;
+sectionEndTime   = physicalSeq.reduce((acc, p) => {
+    const entry = MEASURE_TIME_MAP[p];
+    return acc + (entry ? (entry.end - entry.start) : secondsPerMeasure);
+}, 0);
 
 // Build a set of allowed logical measures so overflow-corrected notes can be rescued.
 const allowedLogical = new Set(physicalSeq.map(q => PHYSICAL_TO_LOGICAL[q] ?? q));
@@ -4006,7 +4050,7 @@ if (!overflowCorrected && (note.time < measureStart || note.time >= measureEnd +
         // window used in spawnTrainingNote's lookahead.
         const offsetInMeasure = (overflowCorrected && rawOffset < 0) ? -0.02 : Math.max(0, rawOffset);
 
-        const playTime = (idx * secondsPerMeasure) + offsetInMeasure;
+        const playTime = physicalSeqCumTime[idx] + offsetInMeasure;
 
         const logicalMeasure =
             skipSheetRepeats
