@@ -4918,6 +4918,11 @@ function _buildSvgMidiMap() {
     }
 
     const rankCounters = {};
+    // Tracks the last rank successfully assigned within each bucket (measure|clef key).
+    // Used to re-assign the same rank to extra MIDI notes that exceed the SVG bucket
+    // capacity in non-repeat-pass context (i.e. the engraver grouped them visually at
+    // the same notehead position as the most-recently-assigned note).
+    const lastAssignedRank = {};
 
     function midiKeyFor(note) {
         return `${note.time.toFixed(4)}|${note.midi}|${note.track}`;
@@ -5148,9 +5153,18 @@ function _buildSvgMidiMap() {
             let rank;
             if (bucketSize > 0 && isRepeatPassNote) {
                 rank = rawRank % bucketSize;
+            } else if (bucketSize > 0 && rawRank >= bucketSize) {
+                // Extra MIDI note beyond the SVG bucket's capacity (non-repeat context).
+                // This happens when the engraver grouped multiple notes onto fewer noteheads
+                // than the MIDI has events. Re-use the last rank that was validly assigned
+                // so this note highlights the same SVG notehead as its nearest neighbour.
+                rank = lastAssignedRank[bucketKey] ?? (bucketSize - 1);
             } else {
-                // First pass or no repeat: clamp to the last valid index rather than wrapping.
-                rank = (bucketSize > 0) ? Math.min(rawRank, bucketSize - 1) : rawRank;
+                rank = bucketSize > 0 ? rawRank : rawRank;
+            }
+            // Record last assigned rank for this bucket (only for in-range assignments).
+            if (bucketSize > 0 && rank < bucketSize) {
+                lastAssignedRank[bucketKey] = rank;
             }
 
             // NOTE: m28/m30 treble grace-note offset removed — grace B no longer exists
