@@ -5290,9 +5290,14 @@ function _applyHighlight(indices, colorMap) {
                         : ne?.clef === 'bass' ? THEME.bassNote : THEME.trebleNote;
             const colorKey = color === '#16a34a' ? 'green' : color === THEME.trebleNote ? 'treble' : color === THEME.bassNote ? 'bass' : color;
             let midi = null;
-            for (const [, entry] of _midiRankMap) {
-                const bucket = _svgBuckets[entry.sheet_measure]?.[entry.clef];
-                if (bucket && bucket[entry.rank] === x) { midi = entry.midi; break; }
+            for (const [mk, entry] of _midiRankMap) {
+                const bucket = (_svgBuckets[entry.sheet_measure]?.[entry.clef])
+                            || (_svgBucketsPage2[entry.sheet_measure]?.[entry.clef]);
+                if (bucket && bucket[entry.rank] === x) {
+                    // mk is "time|midi|track" — extract the midi field
+                    midi = parseInt(mk.split('|')[1], 10);
+                    break;
+                }
             }
             const stray = midi !== null && !expectedMidis.has(midi);
             return { idx: x, midi, name: midi ? getNoteName(midi) : '?', colorKey, stray };
@@ -5421,13 +5426,17 @@ function onTrainingNoteSpawned(noteObj) {
     // highlight. Highlighting them here causes a stray green/purple flash right
     // after a successful press before the app moves to the next musical event.
     const seen = new Set();
+    const seenIdx = new Set(); // also deduplicate by SVG index — chord-mate X-expansion
+                               // can return the same notehead from multiple MIDI notes
     for (const n of simultaneousNotes) {
         if (_bgHeldNotes && _bgHeldNotes.has(n.midi)) continue; // carried-across sustain — skip
         const k = `${n.time.toFixed(4)}|${n.midi}|${n.track}`;
         if (seen.has(k)) continue;
         seen.add(k);
         const indices = _svgIndicesForMidiNote(n, 'both');
-        allIndices.push(...indices);
+        for (const idx of indices) {
+            if (!seenIdx.has(idx)) { seenIdx.add(idx); allIndices.push(idx); }
+        }
     }
 
     // Fallback: just use the primary noteObj
