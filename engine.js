@@ -5139,7 +5139,19 @@ function _buildSvgMidiMap() {
             // Fall back to page2 so the % wrap uses the correct size (6), not 0.
             const bucketSize = ((_svgBuckets[sheetMeasure]?.[clef] || []).length)
                 || ((_svgBucketsPage2[sheetMeasure]?.[clef] || []).length);
-            let rank         = (bucketSize > 0) ? (rawRank % bucketSize) : rawRank;
+            // The modulo wrap maps repeat-pass notes (rawRank = bucketSize..2*bucketSize-1)
+            // back onto the same SVG noteheads as the first pass (rank 0..bucketSize-1).
+            // It must ONLY fire for genuine repeat-pass notes. For first-pass or non-repeated
+            // measures it must NOT wrap: a note arriving with rawRank===bucketSize after a
+            // barline-straddle overflow would incorrectly land at rank=0, making the highlight
+            // jump back to the first notehead of the same measure (the "goes back" bug).
+            let rank;
+            if (bucketSize > 0 && isRepeatPassNote) {
+                rank = rawRank % bucketSize;
+            } else {
+                // First pass or no repeat: clamp to the last valid index rather than wrapping.
+                rank = (bucketSize > 0) ? Math.min(rawRank, bucketSize - 1) : rawRank;
+            }
 
             // NOTE: m28/m30 treble grace-note offset removed — grace B no longer exists
             // in the SVG, so the old rank+1 was skipping rank 0 and pushing the last
