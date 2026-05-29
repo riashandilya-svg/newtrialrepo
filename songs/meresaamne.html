@@ -265,7 +265,7 @@ window.SONG_CONFIG = {
   // ── Theme: red (treble) + dark (bass) ─────────────────────────────────────
   themeOverride: {
     trebleNote:        '#E57373',
-    bassNote:          '#212121',
+    bassNote:          '#7C3AED',
     trebleFallTop:     'rgba(255,235,240,0.92)',
     trebleFallMid1:    'rgba(255,107,107,0.88)',
     trebleFallMid2:    'rgba(255,92,138,0.90)',
@@ -544,10 +544,10 @@ window.SONG_CONFIG = {
 </select>
     </div>
     <button class="ctrl-btn-primary" onclick="document.getElementById('startPracticeButton').click()">▶ Start Practice</button>
-    <button class="ctrl-btn" style="width:100%;margin-top:8px;background:#fff5f7!important;color:#E57373!important;border-color:#ffb3c1!important;" onclick="document.getElementById('stopButton').click()">■ Stop</button>
+    <button class="ctrl-btn" style="width:100%;margin-top:8px;background:#fff0f0!important;color:#E57373!important;border-color:#ffb7bb!important;" onclick="document.getElementById('stopButton').click()">■ Stop</button>
     <div id="skipPreviewBox" style="display:none;margin-top:8px;background:rgba(229,115,115,0.10);border:1.5px dashed rgba(229,115,115,0.5);border-radius:12px;padding:8px 10px;text-align:center;">
       <div style="font-size:11px;font-weight:700;color:#E57373;letter-spacing:0.07em;margin-bottom:5px;">LISTENING…</div>
-      <button id="skipPreviewBtn" class="ctrl-btn" style="width:100%;background:linear-gradient(135deg,#fff5f7,#ffd6e0)!important;color:#E57373!important;border-color:#ffb3c1!important;font-weight:700!important;font-size:12px!important;" onclick="window._skipPreview()">⏩ Skip to My Turn</button>
+      <button id="skipPreviewBtn" class="ctrl-btn" style="width:100%;background:linear-gradient(135deg,#fff0f2,#ffe4e8)!important;color:#c62828!important;border-color:#ffb7bb!important;font-weight:700!important;font-size:12px!important;" onclick="window._skipPreview()">⏩ Skip to My Turn</button>
     </div>
   </div>
 
@@ -746,20 +746,32 @@ window.SONG_CONFIG = {
 </div> <!-- closes app -->
 
 <script defer src="https://cdn.jsdelivr.net/npm/tone@14.7.77/build/Tone.js"></script>
+<!-- Override SVG highlight colors to match score-mode: use #E57373 for all notes
+     instead of engine.js defaults (treble: #9B2C6E purple, bass: #B45309 gold) -->
 <script>
-// ── SVG highlight color override (matches aajkal pink palette) ──
-(function(){
-  const _orig = SVGElement.prototype.setAttribute;
-  SVGElement.prototype.setAttribute = function(name, value){
-    if(name === 'fill'){
-      if(value === '#7c3aed' || value === '#8b5cf6') value = '#E57373';
-      if(value === '#d97706' || value === '#f59e0b') value = '#ff6b6b';
-      if(value === '#059669' || value === '#10b981') value = '#ff5c8a';
+(function () {
+  // Colors engine.js uses for treble and bass highlights (purple, gold/amber, green)
+  const ENGINE_COLORS = new Set([
+    '#9B2C6E', '#9b2c6e',
+    '#B45309', '#b45309',
+    '#FFC107', '#ffc107',
+    '#F59E0B', '#f59e0b',
+    '#FBBF24', '#fbbf24',
+    '#D97706', '#d97706',
+    '#16a34a', '#16A34A'
+  ]);
+  const SCORE_MODE_COLOR = '#E57373';
+
+  const _origSetAttr = SVGElement.prototype.setAttribute;
+  SVGElement.prototype.setAttribute = function (name, value) {
+    if (name === 'fill' && ENGINE_COLORS.has(value)) {
+      return _origSetAttr.call(this, name, SCORE_MODE_COLOR);
     }
-    _orig.call(this, name, value);
+    return _origSetAttr.call(this, name, value);
   };
 })();
 </script>
+
 <script type="module" src="../engine.js"></script>
 
 <!-- Supabase + Paywall (shared) -->
