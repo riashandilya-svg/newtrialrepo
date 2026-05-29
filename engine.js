@@ -1908,10 +1908,6 @@ if (clefMode === 'both') {
 
     console.log('🎹 noteOn', getNoteName(midiNote), '| chord:', [...currentChordNotes].map(getNoteName), '| bgHeld:', [..._bgHeldNotes.keys()].map(getNoteName), '| bgPressed:', [..._beatGroupPressed].map(getNoteName), '| midiPressed:', [...midiPressedNotes].map(getNoteName), '| sustReq:', sustainedRequired.map(getNoteName), '| newReq:', newRequired.map(getNoteName), '| allNewPressed:', allNewPressed, '| allSustOn:', allSustainedStillOn, '| willAdvance:', allCurrentPressed);
 
-    if (allCurrentPressed && newRequired.length === 0) {
-        console.warn('%c⚠️ SKIP RISK: allCurrentPressed=true but newRequired is EMPTY — chord will advance without any new press. currentChord:', 'color:red;font-weight:bold', [...currentChordNotes].map(m => getNoteName(m)+'('+m+')'), '| bgHeld:', [..._bgHeldNotes.keys()].map(m => getNoteName(m)+'('+m+')'));
-    }
-
     if (allCurrentPressed) {
         // Start the stats countdown from the very first correct press so the
         // stat bar counts down for the entire beat group, not just the final hold.
@@ -2226,17 +2222,10 @@ function _advanceBeatGroupSubNote() {
     // on semiquaver clusters where the same note appears in consecutive slots).
     for (const { note: n } of _beatGroupNotes) {
         const t = n.playTime ?? n.time;
-        if (Math.abs(t - nextPlayTime) < 0.01) {
-            // Always clear notes AT the new slot from pressed/latched state so the
-            // user must physically press them again — even if the same MIDI pitch also
-            // appears as a carry-across from an earlier long note. Without this, a
-            // carry-across note with the same pitch keeps the MIDI in _beatGroupPressed,
-            // so allNewPressed evaluates true immediately and the note is skipped.
-            // The carry-across re-add loop below will re-populate _beatGroupPressed
-            // for any note that genuinely spans into this slot.
+        if (Math.abs(t - nextPlayTime) < 0.01 && !carriedAcrossMidis.has(n.midi)) {
             _beatGroupPressed.delete(n.midi);
             midiPressedNotes.delete(n.midi);
-            mouseLatchedNotes.delete(n.midi);
+            mouseLatchedNotes.delete(n.midi); // Fix: prevent stale latch from causing double-click
         }
     }
 
@@ -2263,44 +2252,29 @@ function _advanceBeatGroupSubNote() {
     // Build separate lists: notes to press new vs notes already held that must continue
     const newNotes = [];
     const heldNotes = [];
-    // Track which MIDIs at this slot are ONLY carry-across (no independent new instance)
-    const newSlotMidis = new Set();
     for (const { note: n } of _beatGroupNotes) {
         const t = n.playTime ?? n.time;
         const tEnd = t + n.duration;
         if (Math.abs(t - nextPlayTime) < 0.01) {
-            newSlotMidis.add(n.midi);
             newNotes.push(n.midi);
         } else if (t < nextPlayTime - 0.001 && tEnd > nextPlayTime + 0.05) {
             heldNotes.push(n.midi);
         }
     }
-    // A slot truly requires no new press only if every note in currentChordNotes
-    // is a carry-across AND already held. If there are genuinely new note instances
-    // at this slot (even if the same MIDI pitch is also a carry-across), the user
-    // must press them.
-    const trulyNewPresses = newNotes.filter(midi => !carriedAcrossMidis.has(midi));
 
-    // ── DEBUG ──────────────────────────────────────────────────────────────────
-    console.log(
-        '%c🔍 SLOT DECISION' +
-        '\n  nextPlayTime  :', 'color:#f59e0b;font-weight:bold',
-        nextPlayTime?.toFixed(4),
-        '\n  newNotes      :', newNotes.map(m => getNoteName(m) + '(' + m + ')'),
-        '\n  heldNotes     :', heldNotes.map(m => getNoteName(m) + '(' + m + ')'),
-        '\n  carriedAcross :', [...carriedAcrossMidis].map(m => getNoteName(m) + '(' + m + ')'),
-        '\n  trulyNew      :', trulyNewPresses.map(m => getNoteName(m) + '(' + m + ')'),
-        '\n  currentChord  :', [...currentChordNotes].map(m => getNoteName(m) + '(' + m + ')'),
-        '\n  bgPressed     :', [..._beatGroupPressed].map(m => getNoteName(m) + '(' + m + ')'),
-        '\n  bgHeld        :', [..._bgHeldNotes.keys()].map(m => getNoteName(m) + '(' + m + ')'),
-        '\n  WILL SKIP?    :', (trulyNewPresses.length === 0 && newNotes.length === 0) ? '⏭ YES (carry-across only)' : '▶ NO, showing slot'
-    );
-    // ── END DEBUG ──────────────────────────────────────────────────────────────
-
-    // Recurse immediately only when this slot has NO genuinely-new note instances
-    // (trulyNewPresses) AND no new MIDI numbers at all (newNotes). Using both guards
-    // prevents false skips when a new note re-uses the same MIDI pitch as a carry-across.
-    if (trulyNewPresses.length === 0 && newNotes.length === 0) {
+    // Also recurse immediately when newNotes.length === 0: this slot has no
+    // genuinely-new notes to press — only carried-across sustains. Rendering it
+    // would call rebuildKeyboardHighlights() (green keyboard flash) and then
+    // _applyHighlight([]) (blank score), producing a visible green flash with no
+    // score highlight before the next real slot is shown. Skip it entirely.
+    //
+    // NOTE: We intentionally do NOT skip when newRequired notes happen to already
+    // be in _beatGroupPressed. The press that triggered _advanceBeatGroupSubNote
+    // was added to _beatGroupPressed (line ~3452) BEFORE this function ran, so
+    // it would falsely satisfy the next slot immediately — causing the double-press
+    // bug on semiquavers (sixteenth notes). Each new slot must always wait for a
+    // fresh physical press by the user.
+    if (newNotes.length === 0) {
         console.log('⏭ Slot at', nextPlayTime?.toFixed(4), '— no new notes, only carry-across — skipping visual, recursing');
         _advanceBeatGroupSubNote();
         return;
@@ -4944,11 +4918,6 @@ function _buildSvgMidiMap() {
     }
 
     const rankCounters = {};
-    // Tracks the last rank successfully assigned within each bucket (measure|clef key).
-    // Used to re-assign the same rank to extra MIDI notes that exceed the SVG bucket
-    // capacity in non-repeat-pass context (i.e. the engraver grouped them visually at
-    // the same notehead position as the most-recently-assigned note).
-    const lastAssignedRank = {};
 
     function midiKeyFor(note) {
         return `${note.time.toFixed(4)}|${note.midi}|${note.track}`;
@@ -5120,48 +5089,26 @@ function _buildSvgMidiMap() {
             // passes — there are no SVG noteheads here at all, so every note landing
             // in this bucket is always wrong, regardless of first vs. repeat pass.
             // isRepeatPassNote must NOT block the redirect when isPermanentlyEmpty.
-            //
-            // The alreadyFired guard is ONLY needed for songs with repeats (REPEAT_LEN > 0).
-            // Its purpose is to prevent the repeat-pass notes from falsely overflowing:
-            // they arrive with assignedCount === cap (from the first pass), so "used >= cap"
-            // would fire again. isRepeatPassNote already handles this, but alreadyFired
-            // provides belt-and-suspenders for songs with repeats.
-            //
-            // For songs WITHOUT repeats (REPEAT_LEN === 0), the alreadyFired guard is
-            // harmful: when multiple consecutive MIDI notes straddle the barline (their
-            // timestamps land inside measure M but the SVG places them in M+1), the first
-            // one fires overflow and sets overflowFired[M|clef], which then silently blocks
-            // all subsequent straddlers — leaving them stuck at lastAssignedRank of the
-            // already-full bucket instead of their correct noteheads in M+1.
-            // Disable the guard for no-repeat songs.
-            const alreadyFiredGuard = REPEAT_LEN > 0 ? (!alreadyFired || isPermanentlyEmpty) : true;
             const shouldOverflow = !gracePreCorrected &&
                 (!isRepeatPassNote || isPermanentlyEmpty) &&
-                alreadyFiredGuard &&
+                (!alreadyFired || isPermanentlyEmpty) &&
                 (isPermanentlyEmpty ? emptyBucketShouldOverflow : (used >= cap && used < 2 * cap));
             let didOverflow = false;
             if (shouldOverflow) {
                 const nextCap = bucketCapacity[`${sheetMeasure + 1}|${clef}`] ?? 0;
                 if (nextCap > 0) {
                     console.log(`📐 Overflow [${clef}] midi=${note.midi} time=${note.time.toFixed(4)} → sheetMeasure ${sheetMeasure}→${sheetMeasure + 1} (bucket full: ${used}/${cap})`);
-                    // Always record overflowFired so subsequent-overflow detection works.
-                    // For repeat songs: also gates the shouldOverflow check (prevents
-                    // repeat-pass notes from overflowing again). For no-repeat songs:
-                    // only used to distinguish first vs. subsequent overflow for rank logic.
-                    if (!isPermanentlyEmpty) overflowFired.add(overflowKey);
+                    if (!isPermanentlyEmpty) overflowFired.add(overflowKey); // only guard non-empty barline-straddle
                     sheetMeasure = sheetMeasure + 1;
                     didOverflow = true;
                 }
             }
-
             // Always increment assignedCount so second-pass detection works correctly.
-            // Exception: the FIRST barline-straddle overflow note shares rank=0 with the
-            // genuine first note of the target bucket — do NOT increment the target
-            // bucket's assignedCount for it, so the genuine first note doesn't trigger
-            // another overflow. Subsequent overflow notes (alreadyFired=true) DO
-            // increment — they advance to distinct ranks in the target bucket.
+            // Exception: barline-straddle overflow notes share rank=0 and must NOT
+            // increment the target bucket's assignedCount — otherwise the genuine
+            // first note of that bucket would see used >= cap and trigger another overflow.
             const newCapKey = `${sheetMeasure}|${clef}`;
-            if (!didOverflow || isPermanentlyEmpty || alreadyFired) {
+            if (!didOverflow || isPermanentlyEmpty) {
                 assignedCount[newCapKey] = (assignedCount[newCapKey] ?? 0) + 1;
             }
 
@@ -5175,29 +5122,16 @@ function _buildSvgMidiMap() {
             // SVG noteheads as the first pass.  For measures that are never repeated
             // the bucket size is never exceeded so % has no effect.
             //
-            // Overflow rank logic:
-            // - Songs WITH repeats (REPEAT_LEN > 0): only one note overflows per bucket
-            //   (the alreadyFired guard ensures this). The overflow note peeks at rank=0
-            //   WITHOUT incrementing, so the genuine first note of the target measure
-            //   also gets rank=0 (they share the same SVG notehead). This is the classic
-            //   single-note barline-straddle / grace-note scenario.
-            // - Songs WITHOUT repeats (REPEAT_LEN === 0): multiple notes may straddle the
-            //   same barline. Each overflow note must claim a DISTINCT rank in the target
-            //   measure. ALL overflow notes increment rankCounters (no peeking), giving them
-            //   sequential ranks 0, 1, 2, … in the target measure. The genuine first note
-            //   of the target measure (identified by getMeasureFromTime returning the target
-            //   measure directly) follows from whatever rank the counter has reached.
+            // Barline-straddle overflow notes: these notes landed in the previous measure
+            // by MIDI time but belong visually at rank=0 of the next measure. They share
+            // rank=0 with the genuine first note of that measure — do NOT increment the
+            // rank counter so the genuine first note also gets rank=0. Both notes will
+            // highlight the same SVG notehead (rank=0), which is correct.
             let rawRank;
             if (didOverflow && !isPermanentlyEmpty) {
-                if (REPEAT_LEN > 0) {
-                    // Songs with repeats: single-overflow model — peek without consuming.
-                    // The genuine first note of the target bucket also gets rank=0.
-                    rawRank = rankCounters[bucketKey]; // don't increment
-                } else {
-                    // Songs without repeats: multi-overflow model — each straddler claims
-                    // its own rank sequentially (rank 0, 1, 2, …).
-                    rawRank = rankCounters[bucketKey]++;
-                }
+                // Peek at rank=0 without consuming — the genuine first note of this
+                // bucket will also get rank=0 when it arrives.
+                rawRank = rankCounters[bucketKey]; // don't increment
             } else {
                 rawRank = rankCounters[bucketKey]++;
             }
@@ -5205,28 +5139,7 @@ function _buildSvgMidiMap() {
             // Fall back to page2 so the % wrap uses the correct size (6), not 0.
             const bucketSize = ((_svgBuckets[sheetMeasure]?.[clef] || []).length)
                 || ((_svgBucketsPage2[sheetMeasure]?.[clef] || []).length);
-            // The modulo wrap maps repeat-pass notes (rawRank = bucketSize..2*bucketSize-1)
-            // back onto the same SVG noteheads as the first pass (rank 0..bucketSize-1).
-            // It must ONLY fire for genuine repeat-pass notes. For first-pass or non-repeated
-            // measures it must NOT wrap: a note arriving with rawRank===bucketSize after a
-            // barline-straddle overflow would incorrectly land at rank=0, making the highlight
-            // jump back to the first notehead of the same measure (the "goes back" bug).
-            let rank;
-            if (bucketSize > 0 && isRepeatPassNote) {
-                rank = rawRank % bucketSize;
-            } else if (bucketSize > 0 && rawRank >= bucketSize) {
-                // Extra MIDI note beyond the SVG bucket's capacity (non-repeat context).
-                // This happens when the engraver grouped multiple notes onto fewer noteheads
-                // than the MIDI has events. Re-use the last rank that was validly assigned
-                // so this note highlights the same SVG notehead as its nearest neighbour.
-                rank = lastAssignedRank[bucketKey] ?? (bucketSize - 1);
-            } else {
-                rank = bucketSize > 0 ? rawRank : rawRank;
-            }
-            // Record last assigned rank for this bucket (only for in-range assignments).
-            if (bucketSize > 0 && rank < bucketSize) {
-                lastAssignedRank[bucketKey] = rank;
-            }
+            let rank         = (bucketSize > 0) ? (rawRank % bucketSize) : rawRank;
 
             // NOTE: m28/m30 treble grace-note offset removed — grace B no longer exists
             // in the SVG, so the old rank+1 was skipping rank 0 and pushing the last
@@ -5351,14 +5264,9 @@ function _applyHighlight(indices, colorMap) {
                         : ne?.clef === 'bass' ? THEME.bassNote : THEME.trebleNote;
             const colorKey = color === '#16a34a' ? 'green' : color === THEME.trebleNote ? 'treble' : color === THEME.bassNote ? 'bass' : color;
             let midi = null;
-            for (const [mk, entry] of _midiRankMap) {
-                const bucket = (_svgBuckets[entry.sheet_measure]?.[entry.clef])
-                            || (_svgBucketsPage2[entry.sheet_measure]?.[entry.clef]);
-                if (bucket && bucket[entry.rank] === x) {
-                    // mk is "time|midi|track" — extract the midi field
-                    midi = parseInt(mk.split('|')[1], 10);
-                    break;
-                }
+            for (const [, entry] of _midiRankMap) {
+                const bucket = _svgBuckets[entry.sheet_measure]?.[entry.clef];
+                if (bucket && bucket[entry.rank] === x) { midi = entry.midi; break; }
             }
             const stray = midi !== null && !expectedMidis.has(midi);
             return { idx: x, midi, name: midi ? getNoteName(midi) : '?', colorKey, stray };
@@ -5487,17 +5395,13 @@ function onTrainingNoteSpawned(noteObj) {
     // highlight. Highlighting them here causes a stray green/purple flash right
     // after a successful press before the app moves to the next musical event.
     const seen = new Set();
-    const seenIdx = new Set(); // also deduplicate by SVG index — chord-mate X-expansion
-                               // can return the same notehead from multiple MIDI notes
     for (const n of simultaneousNotes) {
         if (_bgHeldNotes && _bgHeldNotes.has(n.midi)) continue; // carried-across sustain — skip
         const k = `${n.time.toFixed(4)}|${n.midi}|${n.track}`;
         if (seen.has(k)) continue;
         seen.add(k);
         const indices = _svgIndicesForMidiNote(n, 'both');
-        for (const idx of indices) {
-            if (!seenIdx.has(idx)) { seenIdx.add(idx); allIndices.push(idx); }
-        }
+        allIndices.push(...indices);
     }
 
     // Fallback: just use the primary noteObj
