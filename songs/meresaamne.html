@@ -250,10 +250,10 @@ window.SONG_CONFIG = {
   pickupBeats:   0,
   sections: [
     { label: "Intro",              start: 1,  end: 5  },
-    { label: "Mere saamne",        start: 6,  end: 15 },
-    { label: "Chorus",             start: 16, end: 25 },
-    { label: "Antara",             start: 26, end: 35 },
-    { label: "Mukhda reprise",     start: 36, end: 44 },
+    { label: "Mere saamne",        start: 6,  end: 14 },
+    { label: "Chorus",             start: 15, end: 24 },
+    { label: "Antara",             start: 25, end: 34 },
+    { label: "Mukhda reprise",     start: 35, end: 44 },
   ],
   brandUrl:     "https://riashandilya-svg.github.io/classicbollywoodmelodies/index.html",
   brandName:    "Ria Om Shandilya",
@@ -297,22 +297,22 @@ window.SONG_CONFIG = {
   },
 
   // svgPageSystems: measured from meresaamne-1.svg and meresaamne-2.svg
-  // 9 systems across 2 pages (4 + 5), each with 5 measures
+  // 9 systems across 2 pages (4 + 5): 5+5+4+5 = 19 on page 1, 5+5+5+5+5 = 25 on page 2 → 44 total
   svgPageSystems: [
-    // PAGE 1 — m1–m5, m6–m10, m11–m15, m16–m20
+    // PAGE 1 — m1–m5, m6–m10, m11–m14 (4 measures), m15–m19
     [
       { treble_top: 737.7,  treble_bot: 836.9,  bass_top: 1040.9, bass_bot: 1140.1, barline_xs: [338.8, 945.9, 1394.5, 1835.7, 2327.4, 2762.4], start_measure: 1  },
-      { treble_top: 1599.0, treble_bot: 1698.2, bass_top: 1921.5, bass_bot: 2020.7, barline_xs: [214.8, 707.8, 1184.3, 1717.6, 2195.3, 2762.4], start_measure: 6  },
-      { treble_top: 2479.6, treble_bot: 2578.8, bass_top: 2796.4, bass_bot: 2895.6, barline_xs: [214.8, 622.7, 1112.3, 1577.1, 1991.6, 2762.4], start_measure: 11 },
-      { treble_top: 3354.5, treble_bot: 3453.7, bass_top: 3681.1, bass_bot: 3780.3, barline_xs: [214.8, 721.2, 1122.1, 1549.1, 2078.5, 2762.4], start_measure: 16 },
+      { treble_top: 1599.0, treble_bot: 1698.2, bass_top: 1921.5, bass_bot: 2020.7, barline_xs: [214.8, 707.8, 1184.3, 1717.6, 2296.7, 2762.4], start_measure: 6  },
+      { treble_top: 2479.6, treble_bot: 2578.8, bass_top: 2796.4, bass_bot: 2895.6, barline_xs: [214.8, 840.6, 1495.9, 2111.7, 2762.4],          start_measure: 11 },
+      { treble_top: 3354.5, treble_bot: 3453.7, bass_top: 3681.1, bass_bot: 3780.3, barline_xs: [214.8, 721.2, 1234.1, 1767.3, 2264.2, 2762.4], start_measure: 15 },
     ],
-    // PAGE 2 — m21–m25, m26–m30, m31–m35, m36–m40, m41–m44
+    // PAGE 2 — m20–m24, m25–m29, m30–m34, m35–m39, m40–m44
     [
-      { treble_top: 403.7,  treble_bot: 502.9,  bass_top: 701.6,  bass_bot: 800.8,  barline_xs: [214.8, 709.1, 1170.0, 1630.2, 2148.9, 2762.4], start_measure: 21 },
-      { treble_top: 1166.9, treble_bot: 1266.1, bass_top: 1453.0, bass_bot: 1552.2, barline_xs: [214.8, 745.4, 1225.5, 1711.2, 2170.3, 2762.4], start_measure: 26 },
-      { treble_top: 1918.2, treble_bot: 2017.4, bass_top: 2192.7, bass_bot: 2291.9, barline_xs: [214.8, 626.6, 1147.3, 1625.2, 2263.0, 2762.4], start_measure: 31 },
-      { treble_top: 2658.0, treble_bot: 2757.2, bass_top: 2982.3, bass_bot: 3081.5, barline_xs: [214.8, 698.7, 1117.8, 1785.4, 2339.5, 2762.4], start_measure: 36 },
-      { treble_top: 3447.5, treble_bot: 3546.7, bass_top: 3693.1, bass_bot: 3792.3, barline_xs: [214.8, 721.0, 1247.4, 1901.0, 2427.4, 2762.4], start_measure: 41 },
+      { treble_top: 403.7,  treble_bot: 502.9,  bass_top: 701.6,  bass_bot: 800.8,  barline_xs: [214.8, 709.1, 1291.8, 1752.0, 2270.8, 2762.4], start_measure: 20 },
+      { treble_top: 1166.9, treble_bot: 1266.1, bass_top: 1453.0, bass_bot: 1552.2, barline_xs: [214.8, 745.4, 1225.5, 1711.2, 2261.8, 2762.4], start_measure: 25 },
+      { treble_top: 1918.2, treble_bot: 2017.4, bass_top: 2192.7, bass_bot: 2291.9, barline_xs: [214.8, 733.0, 1289.2, 1767.1, 2263.0, 2762.4], start_measure: 30 },
+      { treble_top: 2658.0, treble_bot: 2757.2, bass_top: 2982.3, bass_bot: 3081.5, barline_xs: [214.8, 698.7, 1310.3, 1785.4, 2339.5, 2762.4], start_measure: 35 },
+      { treble_top: 3447.5, treble_bot: 3546.7, bass_top: 3693.1, bass_bot: 3792.3, barline_xs: [214.8, 721.0, 1247.4, 1780.9, 2307.3, 2757.8], start_measure: 40 },
     ],
   ],
 };
