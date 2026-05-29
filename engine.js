@@ -2222,10 +2222,17 @@ function _advanceBeatGroupSubNote() {
     // on semiquaver clusters where the same note appears in consecutive slots).
     for (const { note: n } of _beatGroupNotes) {
         const t = n.playTime ?? n.time;
-        if (Math.abs(t - nextPlayTime) < 0.01 && !carriedAcrossMidis.has(n.midi)) {
+        if (Math.abs(t - nextPlayTime) < 0.01) {
+            // Always clear notes AT the new slot from pressed/latched state so the
+            // user must physically press them again — even if the same MIDI pitch also
+            // appears as a carry-across from an earlier long note. Without this, a
+            // carry-across note with the same pitch keeps the MIDI in _beatGroupPressed,
+            // so allNewPressed evaluates true immediately and the note is skipped.
+            // The carry-across re-add loop below will re-populate _beatGroupPressed
+            // for any note that genuinely spans into this slot.
             _beatGroupPressed.delete(n.midi);
             midiPressedNotes.delete(n.midi);
-            mouseLatchedNotes.delete(n.midi); // Fix: prevent stale latch from causing double-click
+            mouseLatchedNotes.delete(n.midi);
         }
     }
 
@@ -2252,29 +2259,28 @@ function _advanceBeatGroupSubNote() {
     // Build separate lists: notes to press new vs notes already held that must continue
     const newNotes = [];
     const heldNotes = [];
+    // Track which MIDIs at this slot are ONLY carry-across (no independent new instance)
+    const newSlotMidis = new Set();
     for (const { note: n } of _beatGroupNotes) {
         const t = n.playTime ?? n.time;
         const tEnd = t + n.duration;
         if (Math.abs(t - nextPlayTime) < 0.01) {
+            newSlotMidis.add(n.midi);
             newNotes.push(n.midi);
         } else if (t < nextPlayTime - 0.001 && tEnd > nextPlayTime + 0.05) {
             heldNotes.push(n.midi);
         }
     }
+    // A slot truly requires no new press only if every note in currentChordNotes
+    // is a carry-across AND already held. If there are genuinely new note instances
+    // at this slot (even if the same MIDI pitch is also a carry-across), the user
+    // must press them.
+    const trulyNewPresses = newNotes.filter(midi => !carriedAcrossMidis.has(midi));
 
-    // Also recurse immediately when newNotes.length === 0: this slot has no
-    // genuinely-new notes to press — only carried-across sustains. Rendering it
-    // would call rebuildKeyboardHighlights() (green keyboard flash) and then
-    // _applyHighlight([]) (blank score), producing a visible green flash with no
-    // score highlight before the next real slot is shown. Skip it entirely.
-    //
-    // NOTE: We intentionally do NOT skip when newRequired notes happen to already
-    // be in _beatGroupPressed. The press that triggered _advanceBeatGroupSubNote
-    // was added to _beatGroupPressed (line ~3452) BEFORE this function ran, so
-    // it would falsely satisfy the next slot immediately — causing the double-press
-    // bug on semiquavers (sixteenth notes). Each new slot must always wait for a
-    // fresh physical press by the user.
-    if (newNotes.length === 0) {
+    // Recurse immediately only when this slot has NO genuinely-new note instances
+    // (trulyNewPresses) AND no new MIDI numbers at all (newNotes). Using both guards
+    // prevents false skips when a new note re-uses the same MIDI pitch as a carry-across.
+    if (trulyNewPresses.length === 0 && newNotes.length === 0) {
         console.log('⏭ Slot at', nextPlayTime?.toFixed(4), '— no new notes, only carry-across — skipping visual, recursing');
         _advanceBeatGroupSubNote();
         return;
