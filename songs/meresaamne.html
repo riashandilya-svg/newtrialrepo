@@ -24,11 +24,11 @@
 
   /* ── Ambient glow ── */
   body::before {
-    background: radial-gradient(circle, #fecaca 0%, transparent 70%) !important;
+    background: radial-gradient(circle, #ffb3c1 0%, transparent 70%) !important;
     opacity: 0.32 !important;
   }
   body::after {
-    background: radial-gradient(circle, #fee2e2 0%, transparent 70%) !important;
+    background: radial-gradient(circle, #ffd6e0 0%, transparent 70%) !important;
     opacity: 0.22 !important;
   }
   body {
@@ -39,8 +39,8 @@
       radial-gradient(520px 320px at 35% 55%, rgba(235,50,70,0.10),    transparent 60%),
       #ffffff !important;
   }
-  body.dark-mode::before { background: radial-gradient(circle, #ef4444 0%, transparent 70%) !important; opacity: 0.18 !important; }
-  body.dark-mode::after  { background: radial-gradient(circle, #fca5a5 0%, transparent 70%) !important; opacity: 0.10 !important; }
+  body.dark-mode::before { background: radial-gradient(circle, #ff6b81 0%, transparent 70%) !important; opacity: 0.18 !important; }
+  body.dark-mode::after  { background: radial-gradient(circle, #ff8fa3 0%, transparent 70%) !important; opacity: 0.10 !important; }
 
   /* ── Brand bar border ── */
   #brandBar {
@@ -49,8 +49,8 @@
 
   /* ── Hit line ── */
   #hitLine {
-    background: linear-gradient(90deg, transparent 2%, #EF9A9A 20%, #E57373 50%, #EF9A9A 80%, transparent 98%) !important;
-    box-shadow: 0 0 12px #EF9A9A, 0 0 28px rgba(229,115,115,0.5) !important;
+    background: linear-gradient(90deg, transparent 2%, #ff6b6b 20%, #ff5c8a 50%, #ff6b6b 80%, transparent 98%) !important;
+    box-shadow: 0 0 12px #ff6b6b, 0 0 28px rgba(255,107,107,0.5) !important;
   }
 
   /* ── Game stage ── */
@@ -60,7 +60,7 @@
   }
   body.dark-mode #gameStage {
     background: linear-gradient(180deg, rgba(24,28,37,0.88) 0%, rgba(15,17,23,0.95) 100%) !important;
-    border-color: rgba(235,50,70,0.18) !important;
+    border-color: rgba(255,107,129,0.18) !important;
   }
 
   /* ── Stats bar ── */
@@ -68,25 +68,25 @@
     border-color: rgba(235,50,70,0.13) !important;
   }
   body.dark-mode #statsBar {
-    border-color: rgba(235,50,70,0.18) !important;
+    border-color: rgba(255,107,129,0.18) !important;
   }
 
   /* ── Control cards ── */
   .ctrl-card {
     border-color: rgba(235,50,70,0.15) !important;
-    box-shadow: 0 12px 40px rgba(0,0,0,0.07), 0 2px 8px rgba(235,50,70,0.06) !important;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.07), 0 2px 8px rgba(255,92,138,0.06) !important;
   }
   .ctrl-card:hover {
-    box-shadow: 0 18px 50px rgba(0,0,0,0.1), 0 4px 12px rgba(235,50,70,0.1) !important;
+    box-shadow: 0 18px 50px rgba(0,0,0,0.1), 0 4px 12px rgba(255,92,138,0.1) !important;
   }
   .ctrl-card-title {
-    color: #9F1239 !important;
+    color: #E57373 !important;
   }
   body.dark-mode .ctrl-card {
-    border-color: rgba(235,50,70,0.25) !important;
+    border-color: rgba(255,107,129,0.25) !important;
   }
   body.dark-mode .ctrl-card-title {
-    color: #FCA5A5 !important;
+    color: #ff6b81 !important;
   }
 
   /* ── Ctrl buttons ── */
@@ -94,35 +94,28 @@
     border-color: rgba(235,50,70,0.1) !important;
   }
   .ctrl-btn:hover:not(:disabled) {
-    background: rgba(255,241,242,0.95) !important;
-    color: #9F1239 !important;
-    box-shadow: 0 6px 16px rgba(235,50,70,0.18) !important;
+    background: rgba(255,240,242,0.95) !important;
+    color: #E57373 !important;
+    box-shadow: 0 6px 16px rgba(229,115,115,0.18) !important;
   }
   .ctrl-btn.active {
-    background: linear-gradient(135deg, rgba(255,241,242,0.95), rgba(254,226,226,0.95)) !important;
-    color: #9F1239 !important;
-    border-color: rgba(235,50,70,0.3) !important;
-    box-shadow: 0 4px 12px rgba(235,50,70,0.2) !important;
+    background: linear-gradient(135deg, rgba(255,240,242,0.95), rgba(255,228,231,0.95)) !important;
+    color: #E57373 !important;
+    border-color: rgba(229,115,115,0.3) !important;
+    box-shadow: 0 4px 12px rgba(229,115,115,0.2) !important;
   }
   body.dark-mode .ctrl-btn:hover:not(:disabled) {
-    background: rgba(235,50,70,0.12) !important;
-    color: #FCA5A5 !important;
-  }
-  body.dark-mode .ctrl-btn.active {
-    background: rgba(235,50,70,0.22) !important;
-    color: #FCA5A5 !important;
-    border-color: rgba(235,50,70,0.5) !important;
-    box-shadow: 0 0 0 1px rgba(235,50,70,0.35), 0 4px 12px rgba(235,50,70,0.2) !important;
+    background: rgba(255,107,129,0.12) !important;
+    color: #ff6b81 !important;
   }
 
   /* ── Primary button ── */
   .ctrl-btn-primary {
-    background: linear-gradient(135deg, #EF9A9A, #E57373) !important;
-    color: #fff !important;
-    box-shadow: 0 6px 20px rgba(229,115,115,0.32) !important;
+    background: linear-gradient(135deg, #ff7b7b, #ff5c8a) !important;
+    box-shadow: 0 6px 20px rgba(255,92,138,0.32) !important;
   }
   .ctrl-btn-primary:hover:not(:disabled) {
-    box-shadow: 0 10px 28px rgba(229,115,115,0.42) !important;
+    box-shadow: 0 10px 28px rgba(255,92,138,0.42) !important;
   }
 
   /* ── Speed row ── */
@@ -160,7 +153,7 @@
   /* ── Measure pip progress ── */
   .measure-pip.done,
   .measure-pip.active {
-    background: linear-gradient(135deg, #EF9A9A, #E57373) !important;
+    background: linear-gradient(135deg, #ff7b7b, #ff5c8a) !important;
   }
   .measure-pip.active {
     box-shadow: 0 0 8px rgba(229,115,115,0.5) !important;
@@ -169,10 +162,10 @@
   /* ── Training progress bar ── */
   #trainingProgressFill,
   #panelProgressFill {
-    background: linear-gradient(90deg, #EF9A9A, #E57373, #22C55E) !important;
+    background: linear-gradient(90deg, #ff7b7b, #ff5c8a, #22C55E) !important;
   }
   #trainingProgressText {
-    color: #9F1239 !important;
+    color: #E57373 !important;
   }
   #trainingProgress,
   #panelProgressBar {
@@ -229,16 +222,10 @@
 
   /* ── Dark mode score obj paper ── */
   body.dark-mode.score-mode #scoreObj {
-    background: #fff1f2 !important;
-    box-shadow: 0 0 0 12px #fff1f2, 0 4px 32px rgba(229,115,115,0.18) !important;
+    background: #fff8f8 !important;
+    box-shadow: 0 0 0 12px #fff8f8, 0 4px 32px rgba(229,115,115,0.18) !important;
   }
 
-  /* ── Stop button rose tint ── */
-  .ctrl-btn[onclick*="stopButton"] {
-    background: #fff1f2 !important;
-    color: #9F1239 !important;
-    border-color: #fecaca !important;
-  }
 </style>
 </head>
 <body>
@@ -269,40 +256,40 @@ window.SONG_CONFIG = {
   youtubeUrl:   "https://www.youtube.com/watch?v=FaJh5yr51iw",
   youtubeLabel: "Quick Guide to Measures & Sheet",
 
-  // ── Theme: red (treble) + dark (bass) ─────────────────────────────────────
+  // ── Theme: pink/red (treble) + dark (bass) — matches aajkal palette ──────
   themeOverride: {
-    trebleNote:        '#C62828',
+    trebleNote:        '#E57373',
     bassNote:          '#212121',
     trebleFallTop:     'rgba(255,235,235,0.92)',
-    trebleFallMid1:    'rgba(239,154,154,0.88)',
-    trebleFallMid2:    'rgba(229,115,115,0.90)',
-    trebleFallBot:     'rgba(239,83,80,0.94)',
-    trebleFallShadow:  'rgba(198,40,40,0.60)',
+    trebleFallMid1:    'rgba(255,180,180,0.88)',
+    trebleFallMid2:    'rgba(255,107,107,0.90)',
+    trebleFallBot:     'rgba(255,92,138,0.94)',
+    trebleFallShadow:  'rgba(229,115,115,0.60)',
     bassFallTop:       'rgba(97,97,97,0.92)',
     bassFallMid1:      'rgba(66,66,66,0.88)',
     bassFallMid2:      'rgba(33,33,33,0.90)',
     bassFallBot:       'rgba(0,0,0,0.94)',
     bassFallShadow:    'rgba(30,30,30,0.4)',
-    whiteKeyTrebleTop: '#FFCDD2',
-    whiteKeyTrebleBot: '#E57373',
+    whiteKeyTrebleTop: '#ffb3c1',
+    whiteKeyTrebleBot: '#ff5c8a',
     whiteKeyBassTop:   '#E0E0E0',
     whiteKeyBassBot:   '#757575',
-    blackKeyTrebleTop: '#FFCDD2',
-    blackKeyTrebleBot: '#C62828',
+    blackKeyTrebleTop: '#ffb3c1',
+    blackKeyTrebleBot: '#E57373',
     blackKeyBassTop:   '#BDBDBD',
     blackKeyBassBot:   '#424242',
-    keyTrebleGlowShadow: '#EF5350',
-    keyTrebleGlowFillW:  'rgba(239,83,80,0.18)',
-    keyTrebleGlowFillB:  'rgba(239,83,80,0.45)',
+    keyTrebleGlowShadow: '#ff6b6b',
+    keyTrebleGlowFillW:  'rgba(255,107,107,0.18)',
+    keyTrebleGlowFillB:  'rgba(255,107,107,0.45)',
     keyBassGlowShadow:   '#757575',
     keyBassGlowFillW:    'rgba(117,117,117,0.15)',
-    keyLabelTreble:      '#FFEBEE',
+    keyLabelTreble:      '#fff0f0',
     keyLabelBass:        '#424242',
     fallingLabelTreble:  'rgba(0,0,0,0.90)',
     fallingLabelBass:    'rgba(255,255,255,0.95)',
     bpmFocusBorder:  'rgba(235,50,70,0.6)',
     bpmFocusShadow:  'rgba(235,50,70,0.15)',
-    bpmBlurBorder:   'rgba(235,50,70,0.25)',
+    bpmBlurBorder:   'rgba(229,115,115,0.25)',
   },
 
   // ── SVG page systems — mapped from meresaamne-1.svg and meresaamne-2.svg ──
@@ -399,7 +386,7 @@ window.SONG_CONFIG = {
   line-height: 1.6;
   display: none;
 ">
-  <div style="color:#EF9A9A;font-weight:bold;margin-bottom:4px">&#x1F5B1; Mouse Input Debug</div>
+  <div style="color:#ff6b6b;font-weight:bold;margin-bottom:4px">&#x1F5B1; Mouse Input Debug</div>
   <div id="dbg-click-count">Clicks registered: 0</div>
   <div id="dbg-swallowed">Swallowed (guard fired): 0</div>
   <div id="dbg-latch-state">Latched notes: -</div>
@@ -551,10 +538,10 @@ window.SONG_CONFIG = {
 </select>
     </div>
     <button class="ctrl-btn-primary" onclick="document.getElementById('startPracticeButton').click()">▶ Start Practice</button>
-    <button class="ctrl-btn" style="width:100%;margin-top:8px;background:#fff1f2!important;color:#9F1239!important;border-color:#fecaca!important;" onclick="document.getElementById('stopButton').click()">■ Stop</button>
+    <button class="ctrl-btn" style="width:100%;margin-top:8px;background:#fff0f0!important;color:#E57373!important;border-color:#ffb3c1!important;" onclick="document.getElementById('stopButton').click()">■ Stop</button>
     <div id="skipPreviewBox" style="display:none;margin-top:8px;background:rgba(229,115,115,0.10);border:1.5px dashed rgba(229,115,115,0.5);border-radius:12px;padding:8px 10px;text-align:center;">
-      <div style="font-size:11px;font-weight:700;color:#9F1239;letter-spacing:0.07em;margin-bottom:5px;">LISTENING…</div>
-      <button id="skipPreviewBtn" class="ctrl-btn" style="width:100%;background:linear-gradient(135deg,#fff1f2,#fee2e2)!important;color:#9F1239!important;border-color:#fca5a5!important;font-weight:700!important;font-size:12px!important;" onclick="window._skipPreview()">⏩ Skip to My Turn</button>
+      <div style="font-size:11px;font-weight:700;color:#E57373;letter-spacing:0.07em;margin-bottom:5px;">LISTENING…</div>
+      <button id="skipPreviewBtn" class="ctrl-btn" style="width:100%;background:linear-gradient(135deg,#fff0f0,#ffe4e8)!important;color:#E57373!important;border-color:#ffb3c1!important;font-weight:700!important;font-size:12px!important;" onclick="window._skipPreview()">⏩ Skip to My Turn</button>
     </div>
   </div>
 
@@ -753,6 +740,32 @@ window.SONG_CONFIG = {
 </div> <!-- closes app -->
 
 <script defer src="https://cdn.jsdelivr.net/npm/tone@14.7.77/build/Tone.js"></script>
+<!-- Override SVG highlight colors to match score-mode: use #E57373 for all notes
+     instead of engine.js defaults (treble: #9B2C6E purple, bass: #B45309 gold) -->
+<script>
+(function () {
+  // Colors engine.js uses for treble and bass highlights (purple, gold/amber, green)
+  const ENGINE_COLORS = new Set([
+    '#9B2C6E', '#9b2c6e',
+    '#B45309', '#b45309',
+    '#FFC107', '#ffc107',
+    '#F59E0B', '#f59e0b',
+    '#FBBF24', '#fbbf24',
+    '#D97706', '#d97706',
+    '#16a34a', '#16A34A'
+  ]);
+  const SCORE_MODE_COLOR = '#E57373';
+
+  const _origSetAttr = SVGElement.prototype.setAttribute;
+  SVGElement.prototype.setAttribute = function (name, value) {
+    if (name === 'fill' && ENGINE_COLORS.has(value)) {
+      return _origSetAttr.call(this, name, SCORE_MODE_COLOR);
+    }
+    return _origSetAttr.call(this, name, value);
+  };
+})();
+</script>
+
 <script type="module" src="../engine.js"></script>
 
 <!-- Supabase + Paywall (shared) -->
