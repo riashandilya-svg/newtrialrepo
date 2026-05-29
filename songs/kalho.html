@@ -238,47 +238,46 @@ window.SONG_CONFIG = {
   midiFile:  "../midi/kalho.mid",
   svgBase:   "../svg/kalho",
   timeSignature: [4, 4],
-  measures:      67,   // physical MIDI measure count (includes both passes of the repeat)
+  measures:      66,   // physical MIDI measure count (includes both passes of the repeat)
   repeats:       [],
   pickupBeats:   0,
 
-  // ── Repeat: physical measures 2-9 play twice in the MIDI.
-  //    The SVG/sheet shows them once (logical 2-9).
-  //    Physical 10-17  = repeat pass  → logical 2-9
-  //    Physical 18-67  = post-repeat  → logical 10-59
-  repeatStart: 2,
-  repeatEnd:   9,
+  // ── Repeat: physical measures 1-8 play twice in the MIDI.
+  //    The SVG/sheet shows them once (logical 1-8).
+  //    Physical 9-16   = repeat pass  → logical 1-8
+  //    Physical 17-66  = post-repeat  → logical 9-58
+  repeatStart: 1,
+  repeatEnd:   8,
   repeatLen:   8,
 
   buildPhysicalToLogical(map) {
-    map[1] = 1;                                           // measure 1: direct
-    for (let p = 2;  p <= 9;  p++) map[p] = p;           // first pass of repeat
-    for (let p = 10; p <= 17; p++) map[p] = p - 8;       // second pass → logical 2-9
-    for (let p = 18; p <= 67; p++) map[p] = p - 8;       // post-repeat: shift back 8
+    for (let p = 1;  p <= 8;  p++) map[p] = p;           // first pass of repeat
+    for (let p = 9;  p <= 16; p++) map[p] = p - 8;       // second pass → logical 1-8
+    for (let p = 17; p <= 66; p++) map[p] = p - 8;       // post-repeat: shift back 8
     return map;
   },
 
   logicalToPhysicalFirst(logical) {
-    // Logical 1-9   live at the same physical measure.
-    // Logical 10-59 live at physical + 8 (post-repeat block).
-    if (logical >= 10 && logical <= 59) return logical + 8;
+    // Logical 1-8  live at the same physical measure.
+    // Logical 9-58 live at physical + 8 (post-repeat block).
+    if (logical >= 9 && logical <= 58) return logical + 8;
     return logical;
   },
 
   logicalToPhysicalSecond(logical) {
-    // Only the repeated section (logical 2-9) has a second physical pass.
-    if (logical >= 2 && logical <= 9) return logical + 8;
+    // Only the repeated section (logical 1-8) has a second physical pass.
+    if (logical >= 1 && logical <= 8) return logical + 8;
     return null;
   },
 
   // Block-repeat aware sequencer:
-  //   - If the range overlaps the repeat block (2-9), emit the entire first
+  //   - If the range overlaps the repeat block (1-8), emit the entire first
   //     pass of the overlap FIRST, then the entire second pass — never
   //     interleaved per-measure (which would cause "same measure twice in a row").
   //   - Measures outside the repeat block use the normal per-measure logic.
   buildPhysicalPracticeMeasureSequence(startLogical, endLogical, skipRepeats, { MAX_LOGICAL_MEASURE, SONG_CONFIG }) {
     if (startLogical > endLogical) return null;
-    const RSTART = 2, REND = 9;
+    const RSTART = 1, REND = 8;
     const seq = [], logicalSeq = [];
 
     const preEnd    = Math.min(endLogical,   RSTART - 1);
@@ -294,7 +293,7 @@ window.SONG_CONFIG = {
       return true;
     };
 
-    // Pre-repeat measures
+    // Pre-repeat measures (none, since repeat starts at 1)
     for (let l = startLogical; l <= preEnd; l++) {
       if (!pushFirst(l)) return null;
     }
@@ -322,14 +321,14 @@ window.SONG_CONFIG = {
     return { seq, logicalSeq };
   },
 
-  // Sections use LOGICAL measure numbers (max 59, not 67).
+  // Sections use LOGICAL measure numbers (max 58, not 66).
   sections: [
-    { label: "Intro",                            start: 1,  end: 9  },
-    { label: "Har pal yahan — main hoon",        start: 10, end: 21 },
-    { label: "Kal ho na ho (chorus)",            start: 22, end: 33 },
-    { label: "Dil mein — teri yaadein",          start: 34, end: 45 },
-    { label: "Kal ho na ho — reprise",           start: 46, end: 57 },
-    { label: "Ending",                           start: 58, end: 59 },
+    { label: "Intro (repeat)",                   start: 1,  end: 8  },
+    { label: "Har pal yahan — main hoon",        start: 9,  end: 20 },
+    { label: "Kal ho na ho (chorus)",            start: 21, end: 32 },
+    { label: "Dil mein — teri yaadein",          start: 33, end: 44 },
+    { label: "Kal ho na ho — reprise",           start: 45, end: 56 },
+    { label: "Ending",                           start: 57, end: 58 },
   ],
   brandUrl:     "https://riashandilya-svg.github.io/classicbollywoodmelodies/index.html",
   brandName:    "Ria Om Shandilya",
@@ -391,34 +390,36 @@ window.SONG_CONFIG = {
 
   scorePages: 3,
 
-  repeatStart: 2,
-  repeatEnd:   9,
+  repeatStart: 1,
+  repeatEnd:   8,
   repeatLen:   8,
 
   svgPageSystems: [
     // PAGE 1
+    // sys1: removed empty first slot (x=335→514, time-sig-only, no notes)
+    // Repeat open sign sits at x≈525 (right after barline x=514); repeat close at x≈2718 (end of sys2)
     [
-      { treble_top:728.7,  treble_bot:825.2,  bass_top:1079.6, bass_bot:1176.1, barline_xs:[335,514,1166,1560,2212,2762], start_measure:1  },
-      { treble_top:1450.9, treble_bot:1547.3, bass_top:1806.3, bass_bot:1902.8, barline_xs:[215,1012,1675,2245,2740],     start_measure:6  },
-      { treble_top:2192.4, treble_bot:2288.9, bass_top:2398.8, bass_bot:2495.3, barline_xs:[215,930,1522,2125,2762],      start_measure:10 },
-      { treble_top:2770.1, treble_bot:2866.6, bass_top:2976.5, bass_bot:3072.9, barline_xs:[215,969,1600,2242,2762],      start_measure:14 },
-      { treble_top:3347.7, treble_bot:3444.2, bass_top:3668.8, bass_bot:3765.3, barline_xs:[215,1047,1557,2252,2762],     start_measure:18 }
+      { treble_top:728.7,  treble_bot:825.2,  bass_top:1079.6, bass_bot:1176.1, barline_xs:[514,1166,1560,2212,2762],     start_measure:1  },
+      { treble_top:1450.9, treble_bot:1547.3, bass_top:1806.3, bass_bot:1902.8, barline_xs:[215,1012,1675,2245,2740],     start_measure:5  },
+      { treble_top:2192.4, treble_bot:2288.9, bass_top:2398.8, bass_bot:2495.3, barline_xs:[215,930,1522,2125,2762],      start_measure:9  },
+      { treble_top:2770.1, treble_bot:2866.6, bass_top:2976.5, bass_bot:3072.9, barline_xs:[215,969,1600,2242,2762],      start_measure:13 },
+      { treble_top:3347.7, treble_bot:3444.2, bass_top:3668.8, bass_bot:3765.3, barline_xs:[215,1047,1557,2252,2762],     start_measure:17 }
     ],
     // PAGE 2
     [
-      { treble_top:390.0,  treble_bot:486.5,  bass_top:710.8,  bass_bot:807.3,  barline_xs:[215,948,1428,2092,2762],      start_measure:22 },
-      { treble_top:1161.3, treble_bot:1257.8, bass_top:1477.5, bass_bot:1574.0, barline_xs:[215,963,1622,2149,2762],      start_measure:26 },
-      { treble_top:1928.0, treble_bot:2024.5, bass_top:2282.3, bass_bot:2378.8, barline_xs:[215,1021,1695,2275,2762],     start_measure:30 },
-      { treble_top:2732.8, treble_bot:2829.3, bass_top:3004.0, bass_bot:3100.5, barline_xs:[215,1026,1556,2233,2762],     start_measure:34 },
-      { treble_top:3454.5, treble_bot:3551.0, bass_top:3702.7, bass_bot:3799.2, barline_xs:[215,1007,1598,2162,2762],     start_measure:38 }
+      { treble_top:390.0,  treble_bot:486.5,  bass_top:710.8,  bass_bot:807.3,  barline_xs:[215,948,1428,2092,2762],      start_measure:21 },
+      { treble_top:1161.3, treble_bot:1257.8, bass_top:1477.5, bass_bot:1574.0, barline_xs:[215,963,1622,2149,2762],      start_measure:25 },
+      { treble_top:1928.0, treble_bot:2024.5, bass_top:2282.3, bass_bot:2378.8, barline_xs:[215,1021,1695,2275,2762],     start_measure:29 },
+      { treble_top:2732.8, treble_bot:2829.3, bass_top:3004.0, bass_bot:3100.5, barline_xs:[215,1026,1556,2233,2762],     start_measure:33 },
+      { treble_top:3454.5, treble_bot:3551.0, bass_top:3702.7, bass_bot:3799.2, barline_xs:[215,1007,1598,2162,2762],     start_measure:37 }
     ],
     // PAGE 3
     [
-      { treble_top:381.2,  treble_bot:477.7,  bass_top:689.6,  bass_bot:786.0,  barline_xs:[215,927,1573,2125,2762],      start_measure:42 },
-      { treble_top:1129.3, treble_bot:1225.8, bass_top:1483.5, bass_bot:1580.0, barline_xs:[215,1021,1695,2275,2762],     start_measure:46 },
-      { treble_top:1923.3, treble_bot:2019.8, bass_top:2259.9, bass_bot:2356.4, barline_xs:[215,1016,1422,2153,2762],     start_measure:50 },
-      { treble_top:2699.6, treble_bot:2796.1, bass_top:3009.4, bass_bot:3105.8, barline_xs:[215,961,1618,2169,2762],      start_measure:54 },
-      { treble_top:3449.1, treble_bot:3545.6, bass_top:3731.7, bass_bot:3828.2, barline_xs:[215,1665,2740],               start_measure:58 }
+      { treble_top:381.2,  treble_bot:477.7,  bass_top:689.6,  bass_bot:786.0,  barline_xs:[215,927,1573,2125,2762],      start_measure:41 },
+      { treble_top:1129.3, treble_bot:1225.8, bass_top:1483.5, bass_bot:1580.0, barline_xs:[215,1021,1695,2275,2762],     start_measure:45 },
+      { treble_top:1923.3, treble_bot:2019.8, bass_top:2259.9, bass_bot:2356.4, barline_xs:[215,1016,1422,2153,2762],     start_measure:49 },
+      { treble_top:2699.6, treble_bot:2796.1, bass_top:3009.4, bass_bot:3105.8, barline_xs:[215,961,1618,2169,2762],      start_measure:53 },
+      { treble_top:3449.1, treble_bot:3545.6, bass_top:3731.7, bass_bot:3828.2, barline_xs:[215,1665,2740],               start_measure:57 }
     ]
   ],
 };
