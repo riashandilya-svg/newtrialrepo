@@ -1908,6 +1908,10 @@ if (clefMode === 'both') {
 
     console.log('🎹 noteOn', getNoteName(midiNote), '| chord:', [...currentChordNotes].map(getNoteName), '| bgHeld:', [..._bgHeldNotes.keys()].map(getNoteName), '| bgPressed:', [..._beatGroupPressed].map(getNoteName), '| midiPressed:', [...midiPressedNotes].map(getNoteName), '| sustReq:', sustainedRequired.map(getNoteName), '| newReq:', newRequired.map(getNoteName), '| allNewPressed:', allNewPressed, '| allSustOn:', allSustainedStillOn, '| willAdvance:', allCurrentPressed);
 
+    if (allCurrentPressed && newRequired.length === 0) {
+        console.warn('%c⚠️ SKIP RISK: allCurrentPressed=true but newRequired is EMPTY — chord will advance without any new press. currentChord:', 'color:red;font-weight:bold', [...currentChordNotes].map(m => getNoteName(m)+'('+m+')'), '| bgHeld:', [..._bgHeldNotes.keys()].map(m => getNoteName(m)+'('+m+')'));
+    }
+
     if (allCurrentPressed) {
         // Start the stats countdown from the very first correct press so the
         // stat bar counts down for the entire beat group, not just the final hold.
@@ -2276,6 +2280,22 @@ function _advanceBeatGroupSubNote() {
     // at this slot (even if the same MIDI pitch is also a carry-across), the user
     // must press them.
     const trulyNewPresses = newNotes.filter(midi => !carriedAcrossMidis.has(midi));
+
+    // ── DEBUG ──────────────────────────────────────────────────────────────────
+    console.log(
+        '%c🔍 SLOT DECISION' +
+        '\n  nextPlayTime  :', 'color:#f59e0b;font-weight:bold',
+        nextPlayTime?.toFixed(4),
+        '\n  newNotes      :', newNotes.map(m => getNoteName(m) + '(' + m + ')'),
+        '\n  heldNotes     :', heldNotes.map(m => getNoteName(m) + '(' + m + ')'),
+        '\n  carriedAcross :', [...carriedAcrossMidis].map(m => getNoteName(m) + '(' + m + ')'),
+        '\n  trulyNew      :', trulyNewPresses.map(m => getNoteName(m) + '(' + m + ')'),
+        '\n  currentChord  :', [...currentChordNotes].map(m => getNoteName(m) + '(' + m + ')'),
+        '\n  bgPressed     :', [..._beatGroupPressed].map(m => getNoteName(m) + '(' + m + ')'),
+        '\n  bgHeld        :', [..._bgHeldNotes.keys()].map(m => getNoteName(m) + '(' + m + ')'),
+        '\n  WILL SKIP?    :', (trulyNewPresses.length === 0 && newNotes.length === 0) ? '⏭ YES (carry-across only)' : '▶ NO, showing slot'
+    );
+    // ── END DEBUG ──────────────────────────────────────────────────────────────
 
     // Recurse immediately only when this slot has NO genuinely-new note instances
     // (trulyNewPresses) AND no new MIDI numbers at all (newNotes). Using both guards
