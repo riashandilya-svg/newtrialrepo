@@ -5120,26 +5120,48 @@ function _buildSvgMidiMap() {
             // passes — there are no SVG noteheads here at all, so every note landing
             // in this bucket is always wrong, regardless of first vs. repeat pass.
             // isRepeatPassNote must NOT block the redirect when isPermanentlyEmpty.
+            //
+            // The alreadyFired guard is ONLY needed for songs with repeats (REPEAT_LEN > 0).
+            // Its purpose is to prevent the repeat-pass notes from falsely overflowing:
+            // they arrive with assignedCount === cap (from the first pass), so "used >= cap"
+            // would fire again. isRepeatPassNote already handles this, but alreadyFired
+            // provides belt-and-suspenders for songs with repeats.
+            //
+            // For songs WITHOUT repeats (REPEAT_LEN === 0), the alreadyFired guard is
+            // harmful: when multiple consecutive MIDI notes straddle the barline (their
+            // timestamps land inside measure M but the SVG places them in M+1), the first
+            // one fires overflow and sets overflowFired[M|clef], which then silently blocks
+            // all subsequent straddlers — leaving them stuck at lastAssignedRank of the
+            // already-full bucket instead of their correct noteheads in M+1.
+            // Disable the guard for no-repeat songs.
+            const alreadyFiredGuard = REPEAT_LEN > 0 ? (!alreadyFired || isPermanentlyEmpty) : true;
             const shouldOverflow = !gracePreCorrected &&
                 (!isRepeatPassNote || isPermanentlyEmpty) &&
-                (!alreadyFired || isPermanentlyEmpty) &&
+                alreadyFiredGuard &&
                 (isPermanentlyEmpty ? emptyBucketShouldOverflow : (used >= cap && used < 2 * cap));
             let didOverflow = false;
             if (shouldOverflow) {
                 const nextCap = bucketCapacity[`${sheetMeasure + 1}|${clef}`] ?? 0;
                 if (nextCap > 0) {
                     console.log(`📐 Overflow [${clef}] midi=${note.midi} time=${note.time.toFixed(4)} → sheetMeasure ${sheetMeasure}→${sheetMeasure + 1} (bucket full: ${used}/${cap})`);
-                    if (!isPermanentlyEmpty) overflowFired.add(overflowKey); // only guard non-empty barline-straddle
+                    // Always record overflowFired so subsequent-overflow detection works.
+                    // For repeat songs: also gates the shouldOverflow check (prevents
+                    // repeat-pass notes from overflowing again). For no-repeat songs:
+                    // only used to distinguish first vs. subsequent overflow for rank logic.
+                    if (!isPermanentlyEmpty) overflowFired.add(overflowKey);
                     sheetMeasure = sheetMeasure + 1;
                     didOverflow = true;
                 }
             }
+
             // Always increment assignedCount so second-pass detection works correctly.
-            // Exception: barline-straddle overflow notes share rank=0 and must NOT
-            // increment the target bucket's assignedCount — otherwise the genuine
-            // first note of that bucket would see used >= cap and trigger another overflow.
+            // Exception: the FIRST barline-straddle overflow note shares rank=0 with the
+            // genuine first note of the target bucket — do NOT increment the target
+            // bucket's assignedCount for it, so the genuine first note doesn't trigger
+            // another overflow. Subsequent overflow notes (alreadyFired=true) DO
+            // increment — they advance to distinct ranks in the target bucket.
             const newCapKey = `${sheetMeasure}|${clef}`;
-            if (!didOverflow || isPermanentlyEmpty) {
+            if (!didOverflow || isPermanentlyEmpty || alreadyFired) {
                 assignedCount[newCapKey] = (assignedCount[newCapKey] ?? 0) + 1;
             }
 
@@ -5153,16 +5175,29 @@ function _buildSvgMidiMap() {
             // SVG noteheads as the first pass.  For measures that are never repeated
             // the bucket size is never exceeded so % has no effect.
             //
-            // Barline-straddle overflow notes: these notes landed in the previous measure
-            // by MIDI time but belong visually at rank=0 of the next measure. They share
-            // rank=0 with the genuine first note of that measure — do NOT increment the
-            // rank counter so the genuine first note also gets rank=0. Both notes will
-            // highlight the same SVG notehead (rank=0), which is correct.
+            // Overflow rank logic:
+            // - Songs WITH repeats (REPEAT_LEN > 0): only one note overflows per bucket
+            //   (the alreadyFired guard ensures this). The overflow note peeks at rank=0
+            //   WITHOUT incrementing, so the genuine first note of the target measure
+            //   also gets rank=0 (they share the same SVG notehead). This is the classic
+            //   single-note barline-straddle / grace-note scenario.
+            // - Songs WITHOUT repeats (REPEAT_LEN === 0): multiple notes may straddle the
+            //   same barline. Each overflow note must claim a DISTINCT rank in the target
+            //   measure. ALL overflow notes increment rankCounters (no peeking), giving them
+            //   sequential ranks 0, 1, 2, … in the target measure. The genuine first note
+            //   of the target measure (identified by getMeasureFromTime returning the target
+            //   measure directly) follows from whatever rank the counter has reached.
             let rawRank;
             if (didOverflow && !isPermanentlyEmpty) {
-                // Peek at rank=0 without consuming — the genuine first note of this
-                // bucket will also get rank=0 when it arrives.
-                rawRank = rankCounters[bucketKey]; // don't increment
+                if (REPEAT_LEN > 0) {
+                    // Songs with repeats: single-overflow model — peek without consuming.
+                    // The genuine first note of the target bucket also gets rank=0.
+                    rawRank = rankCounters[bucketKey]; // don't increment
+                } else {
+                    // Songs without repeats: multi-overflow model — each straddler claims
+                    // its own rank sequentially (rank 0, 1, 2, …).
+                    rawRank = rankCounters[bucketKey]++;
+                }
             } else {
                 rawRank = rankCounters[bucketKey]++;
             }
