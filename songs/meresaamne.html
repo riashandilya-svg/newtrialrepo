@@ -68,10 +68,7 @@
     border-color: rgba(235,50,70,0.13) !important;
   }
   body.dark-mode #statsBar {
-    border-color: rgba(235,50,70,0.18) !important;
-  }
-
-  /* ── Control cards ── */
+    border-color: rgba(255,107,129,0.18) !important;
   .ctrl-card {
     border-color: rgba(235,50,70,0.15) !important;
     box-shadow: 0 12px 40px rgba(0,0,0,0.07), 0 2px 8px rgba(255,92,138,0.06) !important;
@@ -83,7 +80,7 @@
     color: #E57373 !important;
   }
   body.dark-mode .ctrl-card {
-    border-color: rgba(235,50,70,0.25) !important;
+    border-color: rgba(255,107,129,0.25) !important;
   }
   body.dark-mode .ctrl-card-title {
     color: #ff6b81 !important;
@@ -266,32 +263,32 @@ window.SONG_CONFIG = {
   themeOverride: {
     trebleNote:        '#E57373',
     bassNote:          '#7C3AED',
-    trebleFallTop:     'rgba(255,235,240,0.92)',
-    trebleFallMid1:    'rgba(255,107,107,0.88)',
-    trebleFallMid2:    'rgba(255,92,138,0.90)',
-    trebleFallBot:     'rgba(255,75,120,0.94)',
-    trebleFallShadow:  'rgba(229,115,115,0.60)',
-    bassFallTop:       'rgba(97,97,97,0.92)',
-    bassFallMid1:      'rgba(66,66,66,0.88)',
-    bassFallMid2:      'rgba(33,33,33,0.90)',
-    bassFallBot:       'rgba(0,0,0,0.94)',
-    bassFallShadow:    'rgba(30,30,30,0.4)',
+    trebleFallTop:     'rgba(255,200,200,0.92)',
+    trebleFallMid1:    'rgba(255,150,150,0.88)',
+    trebleFallMid2:    'rgba(229,115,115,0.90)',
+    trebleFallBot:     'rgba(239,83,80,0.94)',
+    trebleFallShadow:  'rgba(229,115,115,0.35)',
+    bassFallTop:       'rgba(221,214,254,0.92)',
+    bassFallMid1:      'rgba(196,181,253,0.88)',
+    bassFallMid2:      'rgba(167,139,250,0.90)',
+    bassFallBot:       'rgba(124,58,237,0.94)',
+    bassFallShadow:    'rgba(167,139,250,0.4)',
     whiteKeyTrebleTop: '#ffd6e0',
     whiteKeyTrebleBot: '#E57373',
-    whiteKeyBassTop:   '#E0E0E0',
-    whiteKeyBassBot:   '#757575',
+    whiteKeyBassTop:   '#DDD6FE',
+    whiteKeyBassBot:   '#A78BFA',
     blackKeyTrebleTop: '#ffb3c1',
     blackKeyTrebleBot: '#ff5c8a',
-    blackKeyBassTop:   '#BDBDBD',
-    blackKeyBassBot:   '#424242',
+    blackKeyBassTop:   '#A78BFA',
+    blackKeyBassBot:   '#7C3AED',
     keyTrebleGlowShadow: '#E57373',
     keyTrebleGlowFillW:  'rgba(229,115,115,0.18)',
     keyTrebleGlowFillB:  'rgba(255,92,138,0.45)',
-    keyBassGlowShadow:   '#757575',
-    keyBassGlowFillW:    'rgba(117,117,117,0.15)',
-    keyLabelTreble:      '#fff0f3',
+    keyBassGlowShadow:   '#7C3AED',
+    keyBassGlowFillW:    'rgba(167,139,250,0.18)',
+    keyLabelTreble:      '#555',
     keyLabelBass:        '#424242',
-    fallingLabelTreble:  'rgba(0,0,0,0.90)',
+    fallingLabelTreble:  'rgba(255,255,255,0.95)',
     fallingLabelBass:    'rgba(255,255,255,0.95)',
     bpmFocusBorder:  'rgba(255,92,138,0.6)',
     bpmFocusShadow:  'rgba(255,92,138,0.15)',
@@ -769,6 +766,81 @@ window.SONG_CONFIG = {
     }
     return _origSetAttr.call(this, name, value);
   };
+})();
+</script>
+
+<!-- Diagnostic: intercept MutationObserver to catch when page 1 SVG is injected,
+     then scan ALL noteheads + ALL TieSegments to find what's being excluded -->
+<script>
+(function() {
+  // Watch for #scorePage1 to get an SVG child injected
+  const observer = new MutationObserver(() => {
+    const svgEl = document.querySelector('#scorePage1 svg');
+    if (!svgEl) return;
+    observer.disconnect();
+
+    const cfg = window.SONG_CONFIG;
+    const sys1 = cfg.svgPageSystems[0][0];  // page 1, system 1
+    const GRACE_SCALE = 0.85;
+
+    // Collect all raw noteheads
+    const raw = [];
+    svgEl.querySelectorAll('path.Note').forEach(el => {
+      const t = el.getAttribute('transform') || '';
+      const mm = t.match(/matrix\(\s*([\d.eE+-]+)[,\s]+([\d.eE+-]+)[,\s]+([\d.eE+-]+)[,\s]+([\d.eE+-]+)[,\s]+([\d.eE+-]+)[,\s]+([\d.eE+-]+)\s*\)/);
+      if (!mm) return;
+      raw.push({ tx: parseFloat(mm[5]), ty: parseFloat(mm[6]), scale: parseFloat(mm[1]) });
+    });
+
+    // Collect tie endpoints (right side = continuation notehead)
+    const tieRights = [];
+    svgEl.querySelectorAll('path.TieSegment').forEach(el => {
+      const d = el.getAttribute('d') || '';
+      const nums = [...d.matchAll(/[-\d.]+/g)].map(m => parseFloat(m[0]));
+      if (nums.length < 8) return;
+      tieRights.push({ ex: nums[6], ey: nums[7] });
+    });
+
+    // Find which noteheads would be excluded (bestDist < 40) — same logic as engine
+    const excluded = new Set();
+    for (const tie of tieRights) {
+      let bestIdx = -1, bestDist = Infinity;
+      for (let i = 0; i < raw.length; i++) {
+        const dist = Math.abs(raw[i].tx - tie.ex) + Math.abs(raw[i].ty - tie.ey) * 0.3;
+        if (dist < bestDist) { bestDist = dist; bestIdx = i; }
+      }
+      if (bestIdx >= 0 && bestDist < 40) excluded.add(bestIdx);
+    }
+
+    // Now scan system 1 noteheads — both kept and excluded
+    const bls = sys1.barline_xs;
+    console.log(`[DIAG] === PAGE 1 SYSTEM 1 FULL SCAN (bass_top=${sys1.bass_top}, bass_bot=${sys1.bass_bot}) ===`);
+    console.log(`[DIAG] tie exclusion threshold=40, ties found=${tieRights.length}, excluded noteheads=${excluded.size}`);
+
+    for (let ri = 0; ri < raw.length; ri++) {
+      const n = raw[ri];
+      // Only within system 1 y range (very generous)
+      if (n.ty < sys1.treble_top - 150 || n.ty > sys1.bass_bot + 250) continue;
+
+      const inTreble = n.ty >= sys1.treble_top - 80 && n.ty <= sys1.treble_bot + 50;
+      const inBass   = n.ty >= sys1.bass_top - 50   && n.ty <= sys1.bass_bot + 50;
+      const clef = inBass ? 'bass' : inTreble ? 'treble' : 'OUT_OF_BOUNDS';
+
+      let measure = '?';
+      for (let i = 0; i < bls.length - 1; i++) {
+        const lb = i===0 ? bls[i]-20 : bls[i];
+        const rb = i===bls.length-2 ? bls[i+1]+20 : bls[i+1];
+        if (n.tx >= lb && n.tx < rb) { measure = sys1.start_measure + i; break; }
+      }
+
+      const status = excluded.has(ri) ? 'EXCLUDED(tie)' : 'kept';
+      if (clef === 'bass' || clef === 'OUT_OF_BOUNDS' || status === 'EXCLUDED(tie)') {
+        console.log(`[DIAG] ri=${ri} ${clef} tx=${n.tx.toFixed(0)} ty=${n.ty.toFixed(0)} m=${measure} scale=${n.scale.toFixed(3)} → ${status}`);
+      }
+    }
+    console.log('[DIAG] === END SCAN ===');
+  });
+  observer.observe(document.getElementById('scoreObj') || document.body, { childList: true, subtree: true });
 })();
 </script>
 
