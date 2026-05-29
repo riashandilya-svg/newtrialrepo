@@ -8,10 +8,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../engine.css">
-<!-- ✏️ Per-song color override — crimson/red palette -->
+<!-- ✏️ Per-song color override — rose/red palette -->
 <style>
   :root {
-    --accent-primary: #E53935;
+    --accent-primary: #E57373;
     --accent-success: #22C55E;
     --accent-error:   #EF4444;
 
@@ -24,23 +24,23 @@
 
   /* ── Ambient glow ── */
   body::before {
-    background: radial-gradient(circle, #ffcdd2 0%, transparent 70%) !important;
+    background: radial-gradient(circle, #fecaca 0%, transparent 70%) !important;
     opacity: 0.32 !important;
   }
   body::after {
-    background: radial-gradient(circle, #ffebee 0%, transparent 70%) !important;
+    background: radial-gradient(circle, #fee2e2 0%, transparent 70%) !important;
     opacity: 0.22 !important;
   }
   body {
     background:
-      radial-gradient(900px 520px at 20% 0%,  rgba(235,50,70,0.22),  transparent 60%),
-      radial-gradient(900px 520px at 85% 10%, rgba(0,0,0,0.10),       transparent 62%),
-      radial-gradient(780px 480px at 50% 80%, rgba(255,120,130,0.16), transparent 60%),
-      radial-gradient(520px 320px at 35% 55%, rgba(235,50,70,0.10),   transparent 60%),
+      radial-gradient(900px 520px at 20% 0%,  rgba(235,50,70,0.22),   transparent 60%),
+      radial-gradient(900px 520px at 85% 10%, rgba(0,0,0,0.10),        transparent 62%),
+      radial-gradient(780px 480px at 50% 80%, rgba(255,120,130,0.16),  transparent 60%),
+      radial-gradient(520px 320px at 35% 55%, rgba(235,50,70,0.10),    transparent 60%),
       #ffffff !important;
   }
-  body.dark-mode::before { background: radial-gradient(circle, #e53935 0%, transparent 70%) !important; opacity: 0.18 !important; }
-  body.dark-mode::after  { background: radial-gradient(circle, #ef9a9a 0%, transparent 70%) !important; opacity: 0.10 !important; }
+  body.dark-mode::before { background: radial-gradient(circle, #ef4444 0%, transparent 70%) !important; opacity: 0.18 !important; }
+  body.dark-mode::after  { background: radial-gradient(circle, #fca5a5 0%, transparent 70%) !important; opacity: 0.10 !important; }
 
   /* ── Brand bar border ── */
   #brandBar {
@@ -49,18 +49,18 @@
 
   /* ── Hit line ── */
   #hitLine {
-    background: linear-gradient(90deg, transparent 2%, #e53935 20%, #ef9a9a 50%, #e53935 80%, transparent 98%) !important;
-    box-shadow: 0 0 12px #e53935, 0 0 28px rgba(229,57,53,0.5) !important;
+    background: linear-gradient(90deg, transparent 2%, #EF9A9A 20%, #E57373 50%, #EF9A9A 80%, transparent 98%) !important;
+    box-shadow: 0 0 12px #EF9A9A, 0 0 28px rgba(229,115,115,0.5) !important;
   }
 
   /* ── Game stage ── */
   #gameStage {
-    background: linear-gradient(180deg, rgba(255,255,255,0.75) 0%, rgba(255,245,245,0.88) 100%) !important;
+    background: linear-gradient(180deg, rgba(255,255,255,0.75) 0%, rgba(255,245,247,0.88) 100%) !important;
     border-color: rgba(235,50,70,0.12) !important;
   }
   body.dark-mode #gameStage {
-    background: linear-gradient(180deg, rgba(30,20,20,0.88) 0%, rgba(18,10,10,0.95) 100%) !important;
-    border-color: rgba(239,154,154,0.18) !important;
+    background: linear-gradient(180deg, rgba(24,28,37,0.88) 0%, rgba(15,17,23,0.95) 100%) !important;
+    border-color: rgba(235,50,70,0.18) !important;
   }
 
   /* ── Stats bar ── */
@@ -68,7 +68,7 @@
     border-color: rgba(235,50,70,0.13) !important;
   }
   body.dark-mode #statsBar {
-    border-color: rgba(239,154,154,0.18) !important;
+    border-color: rgba(235,50,70,0.18) !important;
   }
 
   /* ── Control cards ── */
@@ -80,13 +80,13 @@
     box-shadow: 0 18px 50px rgba(0,0,0,0.1), 0 4px 12px rgba(235,50,70,0.1) !important;
   }
   .ctrl-card-title {
-    color: #E53935 !important;
+    color: #9F1239 !important;
   }
   body.dark-mode .ctrl-card {
-    border-color: rgba(239,154,154,0.25) !important;
+    border-color: rgba(235,50,70,0.25) !important;
   }
   body.dark-mode .ctrl-card-title {
-    color: #ef9a9a !important;
+    color: #FCA5A5 !important;
   }
 
   /* ── Ctrl buttons ── */
@@ -94,28 +94,35 @@
     border-color: rgba(235,50,70,0.1) !important;
   }
   .ctrl-btn:hover:not(:disabled) {
-    background: rgba(255,245,245,0.95) !important;
-    color: #E53935 !important;
+    background: rgba(255,241,242,0.95) !important;
+    color: #9F1239 !important;
     box-shadow: 0 6px 16px rgba(235,50,70,0.18) !important;
   }
   .ctrl-btn.active {
-    background: linear-gradient(135deg, rgba(255,245,245,0.95), rgba(255,235,235,0.95)) !important;
-    color: #E53935 !important;
+    background: linear-gradient(135deg, rgba(255,241,242,0.95), rgba(254,226,226,0.95)) !important;
+    color: #9F1239 !important;
     border-color: rgba(235,50,70,0.3) !important;
     box-shadow: 0 4px 12px rgba(235,50,70,0.2) !important;
   }
   body.dark-mode .ctrl-btn:hover:not(:disabled) {
-    background: rgba(239,154,154,0.12) !important;
-    color: #ef9a9a !important;
+    background: rgba(235,50,70,0.12) !important;
+    color: #FCA5A5 !important;
+  }
+  body.dark-mode .ctrl-btn.active {
+    background: rgba(235,50,70,0.22) !important;
+    color: #FCA5A5 !important;
+    border-color: rgba(235,50,70,0.5) !important;
+    box-shadow: 0 0 0 1px rgba(235,50,70,0.35), 0 4px 12px rgba(235,50,70,0.2) !important;
   }
 
   /* ── Primary button ── */
   .ctrl-btn-primary {
-    background: linear-gradient(135deg, #ef9a9a, #e53935) !important;
-    box-shadow: 0 6px 20px rgba(229,57,53,0.32) !important;
+    background: linear-gradient(135deg, #EF9A9A, #E57373) !important;
+    color: #fff !important;
+    box-shadow: 0 6px 20px rgba(229,115,115,0.32) !important;
   }
   .ctrl-btn-primary:hover:not(:disabled) {
-    box-shadow: 0 10px 28px rgba(229,57,53,0.42) !important;
+    box-shadow: 0 10px 28px rgba(229,115,115,0.42) !important;
   }
 
   /* ── Speed row ── */
@@ -123,7 +130,7 @@
     border-color: rgba(235,50,70,0.1) !important;
   }
   body.dark-mode .ctrl-speed-row {
-    border-color: rgba(239,154,154,0.15) !important;
+    border-color: rgba(235,50,70,0.15) !important;
   }
 
   /* ── Stat items ── */
@@ -131,7 +138,7 @@
     border-color: rgba(235,50,70,0.1) !important;
   }
   body.dark-mode .ctrl-stat-item {
-    border-color: rgba(239,154,154,0.15) !important;
+    border-color: rgba(235,50,70,0.15) !important;
   }
 
   /* ── Panel note items ── */
@@ -139,33 +146,33 @@
     border-color: rgba(235,50,70,0.1) !important;
   }
   .panel-note-circle.correct {
-    background: #E53935 !important;
+    background: #E57373 !important;
   }
   body.dark-mode .panel-note-item {
-    border-color: rgba(239,154,154,0.15) !important;
+    border-color: rgba(235,50,70,0.15) !important;
   }
 
-  /* ── Note circles (side feedback) — correct = red ── */
+  /* ── Note circles (side feedback) ── */
   .note-circle.correct {
-    background: #E53935 !important;
+    background: #E57373 !important;
   }
 
   /* ── Measure pip progress ── */
   .measure-pip.done,
   .measure-pip.active {
-    background: linear-gradient(135deg, #ef9a9a, #e53935) !important;
+    background: linear-gradient(135deg, #EF9A9A, #E57373) !important;
   }
   .measure-pip.active {
-    box-shadow: 0 0 8px rgba(229,57,53,0.5) !important;
+    box-shadow: 0 0 8px rgba(229,115,115,0.5) !important;
   }
 
   /* ── Training progress bar ── */
   #trainingProgressFill,
   #panelProgressFill {
-    background: linear-gradient(90deg, #ef9a9a, #e53935, #22C55E) !important;
+    background: linear-gradient(90deg, #EF9A9A, #E57373, #22C55E) !important;
   }
   #trainingProgressText {
-    color: #E53935 !important;
+    color: #9F1239 !important;
   }
   #trainingProgress,
   #panelProgressBar {
@@ -174,9 +181,9 @@
 
   /* ── Score highlight on SVG ── */
   #scoreHighlight {
-    border-color: #E53935 !important;
-    background: rgba(229,57,53,0.22) !important;
-    box-shadow: 0 0 0 4px rgba(229,57,53,0.15), 0 0 16px rgba(229,57,53,0.30) !important;
+    border-color: #E57373 !important;
+    background: rgba(229,115,115,0.28) !important;
+    box-shadow: 0 0 0 4px rgba(229,115,115,0.18), 0 0 16px rgba(229,115,115,0.35) !important;
   }
 
   /* ── Score image border ── */
@@ -186,12 +193,12 @@
 
   /* ── Falling note drop shadow ── */
   .falling-note {
-    filter: drop-shadow(0 6px 14px rgba(229,57,53,0.35)) !important;
+    filter: drop-shadow(0 6px 14px rgba(229,115,115,0.35)) !important;
   }
 
   /* ── Score keyboard label ── */
   #scoreKeyboardLabel {
-    color: #E53935 !important;
+    color: #E57373 !important;
   }
 
   /* ── Bottom dock (score mode) border ── */
@@ -201,13 +208,13 @@
 
   /* ── Dark mode bottom dock ── */
   body.dark-mode #bottomDock.score-mode {
-    background: rgba(18,10,10,0.97) !important;
+    background: rgba(15,17,23,0.97) !important;
   }
 
   /* ── Accent-color for checkboxes ── */
   #notesStatsToggle,
   #scoreStatsToggle {
-    accent-color: #E53935 !important;
+    accent-color: #E57373 !important;
   }
 
   /* ── BPM input border ── */
@@ -217,20 +224,20 @@
 
   /* ── Toggle switch ── */
   .toggle-switch input:checked + .toggle-track {
-    background: #E53935 !important;
+    background: #E57373 !important;
   }
 
   /* ── Dark mode score obj paper ── */
   body.dark-mode.score-mode #scoreObj {
-    background: #fff5f5 !important;
-    box-shadow: 0 0 0 12px #fff5f5, 0 4px 32px rgba(229,57,53,0.18) !important;
+    background: #fff1f2 !important;
+    box-shadow: 0 0 0 12px #fff1f2, 0 4px 32px rgba(229,115,115,0.18) !important;
   }
 
-  /* ── Stop button red tint ── */
+  /* ── Stop button rose tint ── */
   .ctrl-btn[onclick*="stopButton"] {
-    background: #fff5f5 !important;
-    color: #E53935 !important;
-    border-color: #ffcdd2 !important;
+    background: #fff1f2 !important;
+    color: #9F1239 !important;
+    border-color: #fecaca !important;
   }
 </style>
 </head>
@@ -249,70 +256,73 @@ window.SONG_CONFIG = {
   repeats:       [],
   pickupBeats:   0,
   sections: [
-    { label: "Intro",              start: 1,  end: 5  },
-    { label: "Mere saamne",        start: 6,  end: 14 },
-    { label: "Chorus",             start: 15, end: 24 },
-    { label: "Antara",             start: 25, end: 34 },
-    { label: "Mukhda reprise",     start: 35, end: 44 },
+    { label: "Intro",              start: 1,  end: 4  },
+    { label: "Mukhda",             start: 5,  end: 12 },
+    { label: "Antara 1",           start: 13, end: 20 },
+    { label: "Mukhda reprise",     start: 21, end: 28 },
+    { label: "Interlude / repeat", start: 29, end: 34 },
+    { label: "Antara 2",           start: 35, end: 40 },
+    { label: "Coda / ending",      start: 41, end: 44 },
   ],
   brandUrl:     "https://riashandilya-svg.github.io/classicbollywoodmelodies/index.html",
   brandName:    "Ria Om Shandilya",
   youtubeUrl:   "https://www.youtube.com/watch?v=FaJh5yr51iw",
   youtubeLabel: "Quick Guide to Measures & Sheet",
 
-  // ── Theme: crimson red treble + black bass ──────────────────────────────
+  // ── Theme: red (treble) + dark (bass) ─────────────────────────────────────
   themeOverride: {
-    trebleNote:        '#E53935',
+    trebleNote:        '#C62828',
     bassNote:          '#212121',
     trebleFallTop:     'rgba(255,235,235,0.92)',
     trebleFallMid1:    'rgba(239,154,154,0.88)',
-    trebleFallMid2:    'rgba(229,57,53,0.90)',
-    trebleFallBot:     'rgba(183,28,28,0.94)',
-    trebleFallShadow:  'rgba(229,57,53,0.55)',
+    trebleFallMid2:    'rgba(229,115,115,0.90)',
+    trebleFallBot:     'rgba(239,83,80,0.94)',
+    trebleFallShadow:  'rgba(198,40,40,0.60)',
     bassFallTop:       'rgba(97,97,97,0.92)',
     bassFallMid1:      'rgba(66,66,66,0.88)',
     bassFallMid2:      'rgba(33,33,33,0.90)',
     bassFallBot:       'rgba(0,0,0,0.94)',
-    bassFallShadow:    'rgba(0,0,0,0.40)',
+    bassFallShadow:    'rgba(30,30,30,0.4)',
     whiteKeyTrebleTop: '#FFCDD2',
-    whiteKeyTrebleBot: '#EF9A9A',
-    whiteKeyBassTop:   '#BDBDBD',
+    whiteKeyTrebleBot: '#E57373',
+    whiteKeyBassTop:   '#E0E0E0',
     whiteKeyBassBot:   '#757575',
-    blackKeyTrebleTop: '#EF9A9A',
-    blackKeyTrebleBot: '#B71C1C',
-    blackKeyBassTop:   '#757575',
-    blackKeyBassBot:   '#212121',
-    keyTrebleGlowShadow: '#ef9a9a',
-    keyTrebleGlowFillW:  'rgba(239,154,154,0.15)',
-    keyTrebleGlowFillB:  'rgba(239,154,154,0.4)',
-    keyBassGlowShadow:   '#616161',
-    keyBassGlowFillW:    'rgba(97,97,97,0.15)',
-    keyLabelTreble:      '#555',
-    keyLabelBass:        '#fff',
+    blackKeyTrebleTop: '#FFCDD2',
+    blackKeyTrebleBot: '#C62828',
+    blackKeyBassTop:   '#BDBDBD',
+    blackKeyBassBot:   '#424242',
+    keyTrebleGlowShadow: '#EF5350',
+    keyTrebleGlowFillW:  'rgba(239,83,80,0.18)',
+    keyTrebleGlowFillB:  'rgba(239,83,80,0.45)',
+    keyBassGlowShadow:   '#757575',
+    keyBassGlowFillW:    'rgba(117,117,117,0.15)',
+    keyLabelTreble:      '#FFEBEE',
+    keyLabelBass:        '#424242',
     fallingLabelTreble:  'rgba(0,0,0,0.90)',
     fallingLabelBass:    'rgba(255,255,255,0.95)',
-    bpmFocusBorder:  'rgba(229,57,53,0.6)',
-    bpmFocusShadow:  'rgba(229,57,53,0.15)',
-    bpmBlurBorder:   'rgba(229,57,53,0.25)',
+    bpmFocusBorder:  'rgba(235,50,70,0.6)',
+    bpmFocusShadow:  'rgba(235,50,70,0.15)',
+    bpmBlurBorder:   'rgba(235,50,70,0.25)',
   },
 
-  // svgPageSystems: measured from meresaamne-1.svg and meresaamne-2.svg
-  // 9 systems across 2 pages (4 + 5): 5+5+4+5 = 19 on page 1, 5+5+5+5+5 = 25 on page 2 → 44 total
+  // ── SVG page systems — mapped from meresaamne-1.svg and meresaamne-2.svg ──
   svgPageSystems: [
-    // PAGE 1 — m1–m5, m6–m10, m11–m14 (4 measures), m15–m19
+    // PAGE 1 — 4 systems × 5 measures = m1..m20
     [
-      { treble_top: 737.7,  treble_bot: 836.9,  bass_top: 1040.9, bass_bot: 1140.1, barline_xs: [338.8, 945.9, 1394.5, 1835.7, 2327.4, 2762.4], start_measure: 1  },
-      { treble_top: 1599.0, treble_bot: 1698.2, bass_top: 1921.5, bass_bot: 2020.7, barline_xs: [214.8, 707.8, 1184.3, 1717.6, 2296.7, 2762.4], start_measure: 6  },
-      { treble_top: 2479.6, treble_bot: 2578.8, bass_top: 2796.4, bass_bot: 2895.6, barline_xs: [214.8, 840.6, 1495.9, 2111.7, 2762.4],          start_measure: 11 },
-      { treble_top: 3354.5, treble_bot: 3453.7, bass_top: 3681.1, bass_bot: 3780.3, barline_xs: [214.8, 721.2, 1234.1, 1767.3, 2264.2, 2762.4], start_measure: 15 },
+      { treble_top:727.7,  treble_bot:846.9,  bass_top:1030.9, bass_bot:1150.1, barline_xs:[338.8,945.9,1394.5,1835.7,2327.4,2762.4],  start_measure:1  },
+      { treble_top:1589.0, treble_bot:1708.2, bass_top:1911.5, bass_bot:2030.7, barline_xs:[214.8,879.6,1356.2,1906.1,2367.2,2762.4],  start_measure:6  },
+      { treble_top:2469.6, treble_bot:2588.8, bass_top:2786.4, bass_bot:2905.6, barline_xs:[214.8,840.6,1379.6,1794.2,2284.1,2762.4],  start_measure:11 },
+      { treble_top:3344.5, treble_bot:3463.7, bass_top:3671.1, bass_bot:3790.3, barline_xs:[214.8,915.1,1416.5,1845.0,2264.2,2762.4],  start_measure:16 },
     ],
-    // PAGE 2 — m20–m24, m25–m29, m30–m34, m35–m39, m40–m44
+    // PAGE 2 — 5 systems: m21..25, m26..30, m31..34 (4 bars), m35..39, m40..44
     [
-      { treble_top: 403.7,  treble_bot: 502.9,  bass_top: 701.6,  bass_bot: 800.8,  barline_xs: [214.8, 709.1, 1291.8, 1752.0, 2270.8, 2762.4], start_measure: 20 },
-      { treble_top: 1166.9, treble_bot: 1266.1, bass_top: 1453.0, bass_bot: 1552.2, barline_xs: [214.8, 745.4, 1225.5, 1711.2, 2261.8, 2762.4], start_measure: 25 },
-      { treble_top: 1918.2, treble_bot: 2017.4, bass_top: 2192.7, bass_bot: 2291.9, barline_xs: [214.8, 733.0, 1289.2, 1767.1, 2263.0, 2762.4], start_measure: 30 },
-      { treble_top: 2658.0, treble_bot: 2757.2, bass_top: 2982.3, bass_bot: 3081.5, barline_xs: [214.8, 698.7, 1310.3, 1785.4, 2339.5, 2762.4], start_measure: 35 },
-      { treble_top: 3447.5, treble_bot: 3546.7, bass_top: 3693.1, bass_bot: 3792.3, barline_xs: [214.8, 721.0, 1247.4, 1780.9, 2307.3, 2757.8], start_measure: 40 },
+      { treble_top:393.7,  treble_bot:512.9,  bass_top:691.6,  bass_bot:810.8,  barline_xs:[214.8,788.9,1291.8,1752.0,2270.8,2762.4],  start_measure:21 },
+      { treble_top:1156.9, treble_bot:1276.1, bass_top:1443.0, bass_bot:1562.2, barline_xs:[214.8,876.1,1356.3,1802.6,2261.8,2762.4],  start_measure:26 },
+      // 4 measures: m31-m34
+      { treble_top:1908.2, treble_bot:2027.4, bass_top:2182.7, bass_bot:2301.9, barline_xs:[214.8,875.9,1503.0,2122.8,2762.4],         start_measure:31 },
+      { treble_top:2648.0, treble_bot:2767.2, bass_top:2972.3, bass_bot:3091.5, barline_xs:[214.8,883.1,1310.3,1785.4,2339.5,2762.4],  start_measure:35 },
+      // 5 measures: m40-m44, double barline at end → use rightmost position
+      { treble_top:3437.5, treble_bot:3556.7, bass_top:3683.1, bass_bot:3802.3, barline_xs:[214.8,911.5,1438.0,1971.4,2497.8,2757.8],  start_measure:40 },
     ],
   ],
 };
@@ -367,6 +377,8 @@ window.SONG_CONFIG = {
 
       <h1 id="songTitle"></h1>
 
+
+
 <div id="paywall"></div>
 
 <!-- ===== MOUSE DEBUG OVERLAY ===== -->
@@ -387,7 +399,7 @@ window.SONG_CONFIG = {
   line-height: 1.6;
   display: none;
 ">
-  <div style="color:#FFD54F;font-weight:bold;margin-bottom:4px">&#x1F5B1; Mouse Input Debug</div>
+  <div style="color:#EF9A9A;font-weight:bold;margin-bottom:4px">&#x1F5B1; Mouse Input Debug</div>
   <div id="dbg-click-count">Clicks registered: 0</div>
   <div id="dbg-swallowed">Swallowed (guard fired): 0</div>
   <div id="dbg-latch-state">Latched notes: -</div>
@@ -454,7 +466,7 @@ window.SONG_CONFIG = {
         <span>BPM</span>
     </div>
     <label title="Hide extra stats" style="display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;font-size:10px;font-weight:600;color:#aaa;letter-spacing:0.04em;white-space:nowrap;">
-        <input type="checkbox" id="notesStatsToggle" checked style="width:13px;height:13px;accent-color:#E53935;cursor:pointer;">
+        <input type="checkbox" id="notesStatsToggle" checked style="width:13px;height:13px;accent-color:#E57373;cursor:pointer;">
         all stats
     </label>
 </div>
@@ -539,10 +551,10 @@ window.SONG_CONFIG = {
 </select>
     </div>
     <button class="ctrl-btn-primary" onclick="document.getElementById('startPracticeButton').click()">▶ Start Practice</button>
-    <button class="ctrl-btn" style="width:100%;margin-top:8px;background:#fff5f5!important;color:#b71c1c!important;border-color:#ffcdd2!important;" onclick="document.getElementById('stopButton').click()">■ Stop</button>
-    <div id="skipPreviewBox" style="display:none;margin-top:8px;background:rgba(229,57,53,0.10);border:1.5px dashed rgba(229,57,53,0.5);border-radius:12px;padding:8px 10px;text-align:center;">
-      <div style="font-size:11px;font-weight:700;color:#b71c1c;letter-spacing:0.07em;margin-bottom:5px;">LISTENING…</div>
-      <button id="skipPreviewBtn" class="ctrl-btn" style="width:100%;background:linear-gradient(135deg,#fff5f5,#ffebee)!important;color:#c62828!important;border-color:#ef9a9a!important;font-weight:700!important;font-size:12px!important;" onclick="window._skipPreview()">⏩ Skip to My Turn</button>
+    <button class="ctrl-btn" style="width:100%;margin-top:8px;background:#fff1f2!important;color:#9F1239!important;border-color:#fecaca!important;" onclick="document.getElementById('stopButton').click()">■ Stop</button>
+    <div id="skipPreviewBox" style="display:none;margin-top:8px;background:rgba(229,115,115,0.10);border:1.5px dashed rgba(229,115,115,0.5);border-radius:12px;padding:8px 10px;text-align:center;">
+      <div style="font-size:11px;font-weight:700;color:#9F1239;letter-spacing:0.07em;margin-bottom:5px;">LISTENING…</div>
+      <button id="skipPreviewBtn" class="ctrl-btn" style="width:100%;background:linear-gradient(135deg,#fff1f2,#fee2e2)!important;color:#9F1239!important;border-color:#fca5a5!important;font-weight:700!important;font-size:12px!important;" onclick="window._skipPreview()">⏩ Skip to My Turn</button>
     </div>
   </div>
 
@@ -576,7 +588,7 @@ window.SONG_CONFIG = {
           font-size:15px;
           font-weight:700;
           font-family:inherit;
-          border:1px solid rgba(229,57,53,0.25);
+          border:1px solid rgba(235,50,70,0.25);
           border-radius:8px;
           padding:4px 6px;
           background:rgba(255,255,255,0.9);
@@ -629,7 +641,7 @@ window.SONG_CONFIG = {
     <div class="ctrl-card-title" style="display:flex;align-items:center;justify-content:space-between;">
       <span>STATS</span>
       <label title="Show/hide stats" style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:10px;font-weight:600;color:#aaa;letter-spacing:0.04em;">
-        <input type="checkbox" id="scoreStatsToggle" checked style="width:13px;height:13px;accent-color:#E53935;cursor:pointer;">
+        <input type="checkbox" id="scoreStatsToggle" checked style="width:13px;height:13px;accent-color:#E57373;cursor:pointer;">
         all
       </label>
     </div>
